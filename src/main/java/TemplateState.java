@@ -6,11 +6,8 @@ import java.util.List;
 
 import net.corda.core.identity.Party;
 
-// *********
-// * State *
-// *********
-public class TemplateState implements ContractState {
 
+public class TemplateState implements ContractState {
     private final int value;
     private final Party lender;
     private final Party borrower;

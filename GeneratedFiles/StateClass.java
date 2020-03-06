@@ -20,16 +20,16 @@ public class IOUState implements ContractState {
 
     private final int value;
 
-    public int getvalue() {
-        return value;
-    }
-
-    public Party getlender() {
+    public Party getLender() {
         return lender;
     }
 
-    public Party getborrower() {
+    public Party getBorrower() {
         return borrower;
+    }
+
+    public int getValue() {
+        return value;
     }
 
     @Override

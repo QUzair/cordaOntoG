@@ -1,9 +1,12 @@
 net.corda.core.contracts.CommandData
-net.corda.core.contracts.Contract
-net.corda.core.transactions.LedgerTransaction
 net.corda.core.contracts.CommandWithParties
-net.corda.core.identity.Party
+net.corda.core.contracts.Contract
+net.corda.core.contracts.TypeOnlyCommandData
+net.corda.core.identity.AbstractParty
+net.corda.core.transactions.LedgerTransaction
 java.security.PublicKey
-java.util.Arrays
-java.util.List
+java.util.HashSet
+java.util.Set
+static java.util.stream.Collectors.toSet
 static net.corda.core.contracts.ContractsDSL.requireSingleCommand
+static net.corda.core.contracts.ContractsDSL.requireThat

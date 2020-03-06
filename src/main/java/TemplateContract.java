@@ -1,54 +1,68 @@
 
 import net.corda.core.contracts.CommandData;
+import net.corda.core.contracts.CommandWithParties;
 import net.corda.core.contracts.Contract;
+import net.corda.core.contracts.TypeOnlyCommandData;
+import net.corda.core.identity.AbstractParty;
 import net.corda.core.transactions.LedgerTransaction;
 
-import net.corda.core.contracts.CommandWithParties;
-import net.corda.core.identity.Party;
-
 import java.security.PublicKey;
-import java.util.Arrays;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
+import static java.util.stream.Collectors.toSet;
 import static net.corda.core.contracts.ContractsDSL.requireSingleCommand;
+import static net.corda.core.contracts.ContractsDSL.requireThat;
 
-// ************
-// * Contract *
-// ************
+
 public class TemplateContract implements Contract {
     public static final String ID = "com.template.IOUContract";
 
     // Our Create command.
-    public static class Create implements CommandData {
+    public interface Commands extends CommandData {
+        class Issue extends TypeOnlyCommandData implements Commands {
+        }
 
+        class Transfer extends TypeOnlyCommandData implements Commands {
+        }
     }
 
     @Override
     public void verify(LedgerTransaction tx) {
-        final CommandWithParties<TemplateContract.Create> command = requireSingleCommand(tx.getCommands(), TemplateContract.Create.class);
 
-        // Constraints on the shape of the transaction.
-        if (!tx.getInputs().isEmpty())
-            throw new IllegalArgumentException("No inputs should be consumed when issuing an IOU.");
-        if (!(tx.getOutputs().size() == 1))
-            throw new IllegalArgumentException("There should be one output state of type IOUState.");
+        final CommandWithParties<Commands> command = requireSingleCommand(tx.getCommands(), Commands.class);
+        final Commands commandData = command.getValue();
+        final Set<PublicKey> setOfSigners = new HashSet<>(command.getSigners());
 
-        // IOU-specific constraints.
-        final TemplateState output = tx.outputsOfType(TemplateState.class).get(0);
-        final Party lender = output.getLender();
-        final Party borrower = output.getBorrower();
-        if (output.getValue() <= 0)
-            throw new IllegalArgumentException("The IOU's value must be non-negative.");
-        if (lender.equals(borrower))
-            throw new IllegalArgumentException("The lender and the borrower cannot be the same entity.");
+        if (commandData instanceof Commands.Issue) {
+            verifyIssue(tx, setOfSigners);
+        } else if (commandData instanceof Commands.Transfer) {
+            verifyTransfer(tx, setOfSigners);
+        }
+    }
 
-        // Constraints on the signers.
-        final List<PublicKey> requiredSigners = command.getSigners();
-        final List<PublicKey> expectedSigners = Arrays.asList(borrower.getOwningKey(), lender.getOwningKey());
-        if (requiredSigners.size() != 2)
-            throw new IllegalArgumentException("There must be two signers.");
-        if (!(requiredSigners.containsAll(expectedSigners)))
-            throw new IllegalArgumentException("The borrower and lender must be signers.");
+    private Set<PublicKey> keysFromParticipants(TemplateState iouState) {
+        return iouState
+                .getParticipants().stream()
+                .map(AbstractParty::getOwningKey)
+                .collect(toSet());
+    }
+
+
+    private void verifyIssue(LedgerTransaction tx, Set<PublicKey> signers) {
+
+        requireThat(req -> {
+            TemplateState iouState = (TemplateState) tx.getOutputStates().get(0);
+            req.using("No inputs should be consumed when issuing an obligation.", tx.getInputStates().isEmpty());
+            req.using("Only one obligation state should be created when issuing an obligation.", tx.getOutputStates().size() == 1);
+            req.using("A newly issued obligation must have a positive amount.", iouState.getValue() > 0);
+            req.using("The lender and borrower cannot be the same identity.", !iouState.getBorrower().equals(iouState.getLender()));
+            req.using("Both lender and borrower together only may sign obligation issue transaction.", signers.equals(keysFromParticipants(iouState)));
+            return null;
+        });
+    }
+
+    private void verifyTransfer(LedgerTransaction tx, Set<PublicKey> signers) {
 
     }
 }

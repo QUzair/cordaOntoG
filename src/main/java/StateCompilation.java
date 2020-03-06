@@ -30,10 +30,8 @@ public class StateCompilation {
         //-------------FETCHING----------------------//
 
         //Creating a map of field -> name, value pairs from triplestore
-        Map<String, String> fieldsMap = new HashMap<>();
-        fieldsMap.put("value", "int");
-        fieldsMap.put("lender", "Party");
-        fieldsMap.put("borrower", "Party");
+        Map<String, String> fieldsMap = JenaQuery.getStateProperties();
+        String stateName = JenaQuery.getStateName();
 
         //-------------GENERATING----------------------//
 
@@ -43,17 +41,15 @@ public class StateCompilation {
         compilationUnit.setPackageDeclaration("com.contracts");
 
         // Defining State Name
-        ClassOrInterfaceDeclaration classDeclaration = generateStateClass(compilationUnit, "IOUState");
+        ClassOrInterfaceDeclaration classDeclaration = generateStateClass(compilationUnit, stateName);
 
         //State Constructor
         generateStateFieldsAndConstructor(classDeclaration, fieldsMap);
 
         //Getters for fields
-        generateStateFieldGetter(classDeclaration, "int", "value");
-        generateStateFieldGetter(classDeclaration, "Party", "lender");
-        generateStateFieldGetter(classDeclaration, "Party", "borrower");
+        generateFieldGetters(classDeclaration,fieldsMap);
 
-        //Participants involved with State Changes - Pass Participants as list of Party fields existing in State
+        //Participants involved with State Changes
         generateStateParticipantsGetter(classDeclaration, fieldsMap);
 
         System.out.println(compilationUnit.toString());
@@ -90,18 +86,19 @@ public class StateCompilation {
     }
 
     public static void generateStateFieldGetter(ClassOrInterfaceDeclaration cd, String type, String param) {
-
-        cd.addMethod("get" + param, PUBLIC)
+        String methodName = "get" + param.substring(0, 1).toUpperCase() + param.substring(1);
+        cd.addMethod( methodName, PUBLIC)
                 .setType(type)
                 .setBody(new BlockStmt().addStatement(new ReturnStmt().setExpression(new NameExpr(param))));
     }
 
-    public static void generateFieldGetters(ClassOrInterfaceDeclaration cd,Map<String,String> fields) {
+    public static void generateFieldGetters(ClassOrInterfaceDeclaration cd, Map<String, String> fields) {
 
-        for (Map.Entry<String, String> field : fields.entrySet()) generateStateFieldGetter(cd, field.getValue(), field.getKey());
+        for (Map.Entry<String, String> field : fields.entrySet())
+            generateStateFieldGetter(cd, field.getValue(), field.getKey());
     }
 
-    public static void generateStateFieldsAndConstructor(ClassOrInterfaceDeclaration cd,Map<String,String> fields) {
+    public static void generateStateFieldsAndConstructor(ClassOrInterfaceDeclaration cd, Map<String, String> fields) {
 
         ConstructorDeclaration consDec = cd.addConstructor(PUBLIC);
         BlockStmt st = new BlockStmt();
@@ -122,12 +119,12 @@ public class StateCompilation {
         consDec.setBody(st);
     }
 
-    public static void generateStateParticipantsGetter(ClassOrInterfaceDeclaration cd, Map<String,String> fields) {
+    public static void generateStateParticipantsGetter(ClassOrInterfaceDeclaration cd, Map<String, String> fields) {
 
         ArrayList<String> participants = new ArrayList<String>();
         for (Map.Entry<String, String> field : fields.entrySet()) {
             String fieldType = field.getValue();
-            if(fieldType.equals("Party")) participants.add(field.getKey());
+            if (fieldType.equals("Party")) participants.add(field.getKey());
         }
         String participantsList = String.join(",", participants);
 

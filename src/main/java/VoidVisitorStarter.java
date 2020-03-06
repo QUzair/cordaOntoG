@@ -17,7 +17,7 @@ import java.util.List;
 
 public class VoidVisitorStarter {
 
-    private static final String FILE_PATH = "src/main/java/TemplateState.java";
+    private static final String FILE_PATH = "src/main/java/TemplateContract.java";
     private static final String AST_YAML_FILE = "src/main/resources/AST_Vis_cont.yaml";
 
 
