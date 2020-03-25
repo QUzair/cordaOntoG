@@ -40,4 +40,11 @@ public class IOUContract implements Contract {
     private Set<PublicKey> keysFromParticipants(IOUState iouState) {
         return iouState.getParticipants().stream().map(AbstractParty::getOwningKey).collect(toSet());
     }
+
+    private void verifyIssue(LedgerTransaction tx, Set<PublicKey> signers) {
+        requireThat(empty req -> {
+            TemplateState iouState = (TemplateState) tx.getOutputStates().get(0);
+            req.using("No inputs to be consumed", tx.getInputStates().isEmpty());
+        });
+    }
 }

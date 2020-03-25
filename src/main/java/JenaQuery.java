@@ -5,7 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -27,14 +29,32 @@ public class JenaQuery {
             "            <http://cordaO.org/datatype> ?dataType .\n" +
             "}";
 
+    public static String commandsQuery = "query=SELECT ?name WHERE {\n" +
+            "    ?command a :Command ;\n" +
+            "        :commandName ?name .\n" +
+            "}";
 
-    public static String dbUrl = "http://localhost:5820/corda_test/query";
+
+    public static String dbUrl = "http://localhost:5820/corda_test2/query";
 
 
     public static void main(String[] args) throws IOException {
         getStateProperties();
         getStateName();
     }
+
+    public static List<String> getCommands() throws IOException {
+        JsonNode jsonNode = createConnection(dbUrl,commandsQuery);
+        List<String> commands = new ArrayList<String>();
+
+        Consumer<JsonNode> data = (JsonNode node) -> {
+            commands.add(node.get("name").get("value").toString().replace("\"",""));
+        };
+        jsonNode.get("results").get("bindings").forEach(data);
+
+        return commands;
+    }
+
 
     public static String getStateName() throws IOException {
 

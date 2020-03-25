@@ -19,7 +19,6 @@ public class ContractCompilation {
 
     public static void main(String[] args) throws Exception {
 
-
         /*
         Requires:
         - ContractName - used to declare ClassName
@@ -32,6 +31,7 @@ public class ContractCompilation {
         //Creating an array of commands from triplestore
         String packageName = "com.template.IOUContract";
         List<String> commands =  Arrays.asList("Issue", "Transfer");
+//        List<String> commands = JenaQuery.getCommands();
         String stateName = "IOUState";
         String contractName = "IOU";
 
@@ -57,10 +57,78 @@ public class ContractCompilation {
         //Method for retrieving Participants Keys
         generateKeyFromParticipantsMethod(classDeclaration,stateName,contractName);
 
+        //Generating verify methods for the different commands
+        generateVerifyCommands(classDeclaration,"Issue");
+
 
         //Output Generated File
         System.out.println(compilationUnit.toString());
         createNewContractClassFile(compilationUnit.toString());
+    }
+
+    public static ExpressionStmt generateConstraintStatements() {
+        ExpressionStmt expressionStmt = new ExpressionStmt().setExpression(
+                new MethodCallExpr("using")
+                        .setScope(new NameExpr("req"))
+                        .addArgument(new StringLiteralExpr("No inputs to be consumed"))
+                        .addArgument(
+                                new MethodCallExpr("isEmpty")
+                                    .setScope(new MethodCallExpr("getInputStates").setScope(new NameExpr("tx")))
+                        )
+        );
+        return  expressionStmt;
+    }
+
+    public static void generateVerifyCommands(ClassOrInterfaceDeclaration cd, String command) {
+        String commandFn = "verify" + command.substring(0, 1).toUpperCase() + command.substring(1);
+        BlockStmt blockStmt = new BlockStmt();
+        BlockStmt lambdaBlockStmt = new BlockStmt();
+        MethodDeclaration md = new MethodDeclaration();
+        MethodCallExpr methodCallExpr = new MethodCallExpr();
+        LambdaExpr lambdaExpr = new LambdaExpr();
+        ExpressionStmt expressionStmt = new ExpressionStmt();
+
+         expressionStmt = new ExpressionStmt().setExpression(new VariableDeclarationExpr().addVariable(
+                new VariableDeclarator()
+                        .setName("iouState")
+                        .setType("TemplateState")
+                        .setInitializer(
+                            new CastExpr()
+                                    .setExpression(
+                                        new MethodCallExpr()
+                                                .setName("get")
+                                                .setScope(new MethodCallExpr("getOutputStates").setScope(new NameExpr("tx")))
+                                                .addArgument(new IntegerLiteralExpr("0"))
+                                    )
+                                    .setType(new ClassOrInterfaceType().setName("TemplateState"))
+                        )
+        ));
+
+        lambdaBlockStmt
+                .addStatement(expressionStmt)
+                .addStatement(generateConstraintStatements());
+
+        lambdaExpr
+                .setEnclosingParameters(false)
+                .addParameter(new Parameter().setName("req").setVarArgs(false))
+                .setBody(lambdaBlockStmt);
+
+
+        methodCallExpr
+                .setName("requireThat")
+                .addArgument(lambdaExpr);
+
+        blockStmt.addStatement(new ExpressionStmt().setExpression(methodCallExpr));
+
+        md
+                .setName(commandFn)
+                .setModifiers(PRIVATE)
+                .setType(new VoidType())
+                .addParameter(new Parameter().setName("tx").setType(new ClassOrInterfaceType().setName("LedgerTransaction")).setVarArgs(false))
+                .addParameter(new Parameter().setName("signers").setType(new ClassOrInterfaceType().setName("Set").setTypeArguments(new ClassOrInterfaceType().setName("PublicKey"))).setVarArgs(false))
+                .setBody(blockStmt);
+
+        cd.addMember(md);
     }
 
     public static void createNewContractClassFile(String newFile) throws IOException {
@@ -69,7 +137,7 @@ public class ContractCompilation {
         writer.close();
     }
 
-    static void generateKeyFromParticipantsMethod(ClassOrInterfaceDeclaration cd, String stateName, String contractName) {
+    public static void generateKeyFromParticipantsMethod(ClassOrInterfaceDeclaration cd, String stateName, String contractName) {
 
         String variableName = contractName.toLowerCase()+"State";
         BlockStmt blockStmt = new BlockStmt();
@@ -78,7 +146,7 @@ public class ContractCompilation {
         md
                 .setName("keysFromParticipants")
                 .setModifiers(PRIVATE)
-                .setType(new ClassOrInterfaceType("Set").setTypeArguments(new ClassOrInterfaceType("PublicKey")))
+                .setType(new ClassOrInterfaceType().setName("Set").setTypeArguments(new ClassOrInterfaceType().setName("PublicKey")))
                 .addParameter(new Parameter().setName(variableName).setType(new ClassOrInterfaceType().setName(stateName)).setVarArgs(false));
 
         methodCallExpr
@@ -132,8 +200,8 @@ public class ContractCompilation {
                 .setName(variableName)
                 .setInitializer(initializer);
 
-        if(classInterface) variableDeclarator.setType(new ClassOrInterfaceType(classType).setTypeArguments(new ClassOrInterfaceType(classInterfaceName)));
-        else variableDeclarator.setType(new ClassOrInterfaceType(classType));
+        if(classInterface) variableDeclarator.setType(new ClassOrInterfaceType().setName(classType).setTypeArguments(new ClassOrInterfaceType(classInterfaceName)));
+        else variableDeclarator.setType(new ClassOrInterfaceType().setName(classType));
 
         NodeList<VariableDeclarator> variableDeclarators = new NodeList<>();
         variableDeclarators.add(variableDeclarator);
