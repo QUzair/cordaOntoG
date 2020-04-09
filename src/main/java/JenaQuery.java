@@ -20,13 +20,13 @@ public class JenaQuery {
             "                <http://cordaO.org/stateName> ?stateName ;\n" +
             "}";
 
-    public static String statePropertiesQuery = "query=SELECT ?propertyName ?dataType ?stateName WHERE {\n" +
-            "    ?stateprop a <http://cordaO.org/State> ;\n" +
-            "                <http://cordaO.org/stateName> ?stateName ;\n" +
-            "                <http://cordaO.org/hasProperty> ?props .\n" +
+    public static String statePropertiesQuery = "query=PREFIX :<http://cordaO.org/> SELECT DISTINCT ?stateName ?propertyName ?dataType WHERE {\n" +
+            "    ?state a :State ;\n" +
+            "                :stateName ?stateName ;\n" +
+            "                :hasProperty ?props .\n" +
             "\n" +
-            "    ?props <http://cordaO.org/propertyName> ?propertyName ;\n" +
-            "            <http://cordaO.org/datatype> ?dataType .\n" +
+            "    ?props :propertyName ?propertyName ;\n" +
+            "            :datatype ?dataType .\n" +
             "}";
 
     public static String commandsQuery = "query=SELECT ?name WHERE {\n" +
@@ -35,8 +35,7 @@ public class JenaQuery {
             "}";
 
 
-    public static String dbUrl = "http://localhost:5820/corda_test2/query";
-
+    public static String dbUrl = "http://localhost:5820/corda/query";
 
     public static void main(String[] args) throws IOException {
         getStateProperties();
@@ -74,6 +73,7 @@ public class JenaQuery {
 
             // Return Map Result
             Map<String, String> fieldsMap = new HashMap<>();
+            fieldsMap.put("linearId","UniqueIdentifier");
 
             JsonNode jsonNode = createConnection(dbUrl,statePropertiesQuery);
 

@@ -2,13 +2,11 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.*;
-import com.github.javaparser.ast.stmt.BlockStmt;
-import com.github.javaparser.ast.stmt.ExpressionStmt;
-import com.github.javaparser.ast.stmt.IfStmt;
-import com.github.javaparser.ast.stmt.ReturnStmt;
+import com.github.javaparser.ast.stmt.*;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
-import com.github.javaparser.ast.type.Type;
+import com.github.javaparser.ast.type.UnknownType;
 import com.github.javaparser.ast.type.VoidType;
+import net.corda.core.transactions.TransactionBuilder;
 
 import java.io.*;
 import java.util.*;
@@ -24,16 +22,48 @@ public class ContractCompilation {
         - ContractName - used to declare ClassName
         - Array of commands of Contract.
         - ID of package to be stored in
+
+        - stateName "IOUState"
+        - input/output "output"
+        - property "value"
         */
+        TransactionProperties tx = new TransactionProperties();
+
+        MethodCallExpr txInputSize = tx.txInputOutputSize(tx.TX_INPUT);
+        MethodCallExpr txOutputSize = tx.txInputOutputSize(tx.TX_OUTPUT);
+
+        MethodCallExpr stateBorrower = tx.getStateProperty("borrower", "iouState", tx.TX_INPUT);
+        MethodCallExpr stateLender = tx.getStateProperty("lender", "iouState", tx.TX_INPUT);
+        MethodCallExpr stateValue = tx.getStateProperty("value", "iouState", tx.TX_INPUT, true);
 
         //-------------FETCHING----------------------//
 
-        //Creating an array of commands from triplestore
+        //Creating an array of commands from tripleStore
         String packageName = "com.template.IOUContract";
-        List<String> commands =  Arrays.asList("Issue", "Transfer");
+        List<String> commands = Arrays.asList("Issue", "Transfer");
 //        List<String> commands = JenaQuery.getCommands();
         String stateName = "IOUState";
         String contractName = "IOU";
+        List<ContractCondition> descriptions = new ArrayList<ContractCondition>();
+        descriptions.add(new ContractCondition("No inputs should be consumed when issuing an obligation.", txInputSize, BinaryExpr.Operator.EQUALS, new IntegerLiteralExpr("0")));
+        descriptions.add(new ContractCondition("Only one obligation state should be created when issuing an obligation.", txOutputSize, BinaryExpr.Operator.EQUALS, new IntegerLiteralExpr("1")));
+        descriptions.add(new ContractCondition("A newly issued obligation must have a positive amount.", stateValue, BinaryExpr.Operator.GREATER, new IntegerLiteralExpr("0")));
+        descriptions.add(new ContractCondition("The lender and borrower cannot be the same identity.", stateLender, BinaryExpr.Operator.NOT_EQUALS, stateBorrower));
+
+
+        List<ContractCondition> descriptionsSettle = new ArrayList<ContractCondition>();
+        descriptionsSettle.add(new ContractCondition("There must be one input obligation.", txInputSize, BinaryExpr.Operator.EQUALS, new IntegerLiteralExpr("1")));
+
+        //Variables necessary for internals Command checks
+        List<ExpressionStmt> variablesIssue = new ArrayList<ExpressionStmt>();
+        variablesIssue.add(tx.singleStateType("IOUState", "output"));
+        variablesIssue.add(tx.singleStateType("IOUState", "input"));
+
+        List<ExpressionStmt> variablesSettle = new ArrayList<ExpressionStmt>();
+        variablesSettle.add(tx.getCashFromOutput());
+        variablesSettle.add(tx.singleStateType("IOUState", "input"));
+        variablesSettle.add(tx.acceptableCashFromPayee("lender", "IOUState"));
+        variablesSettle.add(tx.getSumOfCashBeingSent());
 
         //-------------GENERATING----------------------//
 
@@ -52,61 +82,64 @@ public class ContractCompilation {
         generateCommandsInterface(classDeclaration, commands);
 
         //Main Verify Method
-        generateMainVerifyMethod(classDeclaration,commands);
+        generateMainVerifyMethod(classDeclaration, commands);
 
         //Method for retrieving Participants Keys
-        generateKeyFromParticipantsMethod(classDeclaration,stateName,contractName);
+        generateKeyFromParticipantsMethod(classDeclaration, stateName, contractName);
 
         //Generating verify methods for the different commands
-        generateVerifyCommands(classDeclaration,"Issue");
+        generateVerifyCommands(classDeclaration, "Issue", descriptions, variablesIssue);
 
+        generateVerifyCommands(classDeclaration, "Settle", descriptionsSettle, variablesSettle);
 
         //Output Generated File
         System.out.println(compilationUnit.toString());
         createNewContractClassFile(compilationUnit.toString());
     }
 
-    public static ExpressionStmt generateConstraintStatements() {
-        ExpressionStmt expressionStmt = new ExpressionStmt().setExpression(
+    public static ExpressionStmt generateConstraintStatements(ContractCondition constraint) {
+
+        return new ExpressionStmt().setExpression(
                 new MethodCallExpr("using")
                         .setScope(new NameExpr("req"))
-                        .addArgument(new StringLiteralExpr("No inputs to be consumed"))
+                        .addArgument(new StringLiteralExpr(constraint.description))
                         .addArgument(
-                                new MethodCallExpr("isEmpty")
-                                    .setScope(new MethodCallExpr("getInputStates").setScope(new NameExpr("tx")))
+                                new BinaryExpr()
+                                        .setOperator(constraint.operator)
+                                        .setLeft(
+                                                constraint.left
+                                        )
+                                        .setRight(constraint.right != null ? constraint.right : constraint.rightInt)
                         )
         );
-        return  expressionStmt;
     }
 
-    public static void generateVerifyCommands(ClassOrInterfaceDeclaration cd, String command) {
+    public static ExpressionStmt generateConstraintStatements(ContractCondition constraint, boolean empty) {
+        return new ExpressionStmt().setExpression(new MethodCallExpr().setName("using").setScope(new NameExpr("req"))
+                .addArgument(new StringLiteralExpr(constraint.description))
+                .addArgument(new UnaryExpr().setOperator(UnaryExpr.Operator.LOGICAL_COMPLEMENT).setExpression(new MethodCallExpr("isEmpty").setScope(new NameExpr("acceptableCash"))))
+        );
+    }
+
+    public static void generateVerifyCommands(ClassOrInterfaceDeclaration cd, String command, List<ContractCondition> descriptions, List<ExpressionStmt> baseVariables) {
         String commandFn = "verify" + command.substring(0, 1).toUpperCase() + command.substring(1);
         BlockStmt blockStmt = new BlockStmt();
         BlockStmt lambdaBlockStmt = new BlockStmt();
         MethodDeclaration md = new MethodDeclaration();
         MethodCallExpr methodCallExpr = new MethodCallExpr();
         LambdaExpr lambdaExpr = new LambdaExpr();
-        ExpressionStmt expressionStmt = new ExpressionStmt();
 
-         expressionStmt = new ExpressionStmt().setExpression(new VariableDeclarationExpr().addVariable(
-                new VariableDeclarator()
-                        .setName("iouState")
-                        .setType("TemplateState")
-                        .setInitializer(
-                            new CastExpr()
-                                    .setExpression(
-                                        new MethodCallExpr()
-                                                .setName("get")
-                                                .setScope(new MethodCallExpr("getOutputStates").setScope(new NameExpr("tx")))
-                                                .addArgument(new IntegerLiteralExpr("0"))
-                                    )
-                                    .setType(new ClassOrInterfaceType().setName("TemplateState"))
-                        )
-        ));
+        for (ExpressionStmt var : baseVariables) {
+            lambdaBlockStmt
+                    .addStatement(var);
+        }
 
-        lambdaBlockStmt
-                .addStatement(expressionStmt)
-                .addStatement(generateConstraintStatements());
+
+        for (ContractCondition description : descriptions) {
+            lambdaBlockStmt.addStatement(generateConstraintStatements(description));
+        }
+        lambdaBlockStmt.addStatement(new ReturnStmt().setExpression(new NullLiteralExpr()));
+
 
         lambdaExpr
                 .setEnclosingParameters(false)
@@ -139,7 +172,7 @@ public class ContractCompilation {
 
     public static void generateKeyFromParticipantsMethod(ClassOrInterfaceDeclaration cd, String stateName, String contractName) {
 
-        String variableName = contractName.toLowerCase()+"State";
+        String variableName = contractName.toLowerCase() + "State";
         BlockStmt blockStmt = new BlockStmt();
         MethodDeclaration md = new MethodDeclaration();
         MethodCallExpr methodCallExpr = new MethodCallExpr();
@@ -168,8 +201,7 @@ public class ContractCompilation {
         cd.addMember(md);
     }
 
-
-    static void generateMainVerifyMethod(ClassOrInterfaceDeclaration cd,List<String> commands) {
+    static void generateMainVerifyMethod(ClassOrInterfaceDeclaration cd, List<String> commands) {
         MethodDeclaration md = new MethodDeclaration();
         md
                 .setName("verify")
@@ -181,18 +213,33 @@ public class ContractCompilation {
         BlockStmt blockStmt = new BlockStmt();
         md.setBody(blockStmt);
 
-        generateExpressions(blockStmt,"command","CommandWithParties",true,"Commands","requireSingleCommand(tx.getCommands(), Commands.class)");
-        generateExpressions(blockStmt,"commandData","Commands",false,null,"command.getValue()");
-        generateExpressions(blockStmt,"setOfSigners","Set",true,"PublicKey","new HashSet<>(command.getSigners())");
+        generateExpressions(blockStmt, "command", "CommandWithParties", true, "Commands", "requireSingleCommand(tx.getCommands(), Commands.class)");
+        generateExpressions(blockStmt, "commandData", "Commands", false, null, "command.getValue()");
+        generateExpressions(blockStmt, "setOfSigners", "Set", true, "PublicKey", "new HashSet<>(command.getSigners())");
 
-        for(String command:commands) {
-            generateIfStatementsForCommandsVerify(blockStmt,command);
+
+        BlockStmt noCommandFound = illegalArgumentExceptionStmt("Unrecognised Command");
+        IfStmt nextStmt;
+        IfStmt topIfStmt = generateVerifyIfStatement(commands.get(0));
+        IfStmt prevIfStmt = topIfStmt;
+
+        for (int c = 1; c < commands.size(); c++) {
+            nextStmt = generateVerifyIfStatement(commands.get(c));
+            prevIfStmt.setElseStmt(nextStmt);
+            prevIfStmt = nextStmt;
         }
+        prevIfStmt.setElseStmt(noCommandFound);
+        blockStmt.addStatement(topIfStmt);
 
         cd.addMember(md);
     }
 
-    static void generateExpressions( BlockStmt blockStmt, String variableName, String classType, Boolean classInterface, String classInterfaceName, String initializer) {
+
+    static BlockStmt illegalArgumentExceptionStmt(String message) {
+        return new BlockStmt().addStatement(new ThrowStmt().setExpression(new ObjectCreationExpr().setType(new ClassOrInterfaceType().setName("IllegalArgumentException")).addArgument(new StringLiteralExpr(message))));
+    }
+
+    static void generateExpressions(BlockStmt blockStmt, String variableName, String classType, Boolean classInterface, String classInterfaceName, String initializer) {
         ExpressionStmt expressionStmt = new ExpressionStmt();
         VariableDeclarationExpr variableDeclarationExpr = new VariableDeclarationExpr().setModifiers(FINAL);
         VariableDeclarator variableDeclarator = new VariableDeclarator();
@@ -200,7 +247,8 @@ public class ContractCompilation {
                 .setName(variableName)
                 .setInitializer(initializer);
 
-        if(classInterface) variableDeclarator.setType(new ClassOrInterfaceType().setName(classType).setTypeArguments(new ClassOrInterfaceType(classInterfaceName)));
+        if (classInterface)
+            variableDeclarator.setType(new ClassOrInterfaceType().setName(classType).setTypeArguments(new ClassOrInterfaceType(classInterfaceName)));
         else variableDeclarator.setType(new ClassOrInterfaceType().setName(classType));
 
         NodeList<VariableDeclarator> variableDeclarators = new NodeList<>();
@@ -210,8 +258,8 @@ public class ContractCompilation {
         blockStmt.addStatement(expressionStmt);
     }
 
-    static void generateIfStatementsForCommandsVerify( BlockStmt blockStmt, String command) {
-        String methodName = "verify" + command.substring(0, 1).toUpperCase() + command.substring(1);
+    static IfStmt generateVerifyIfStatement(String command) {
+        String methodName = TransactionProperties.camelCase("verify", command);
         IfStmt ifStmt = new IfStmt();
         ExpressionStmt expressionStmt = new ExpressionStmt();
         MethodCallExpr methodCallExpr = new MethodCallExpr();
@@ -224,14 +272,13 @@ public class ContractCompilation {
 
         instanceOfExpr
                 .setExpression("commandData")
-                .setType(new ClassOrInterfaceType(command).setScope(new ClassOrInterfaceType("Commands")));
+                .setType(new ClassOrInterfaceType().setName(command).setScope(new ClassOrInterfaceType().setName("Commands")));
 
         ifStmt
                 .setCondition(instanceOfExpr)
                 .setThenStmt(expressionStmt.setExpression(methodCallExpr));
 
-
-        blockStmt.addStatement(ifStmt);
+        return ifStmt;
     }
 
     static void generateCommandsInterface(ClassOrInterfaceDeclaration cd, List<String> commands) {
@@ -243,8 +290,8 @@ public class ContractCompilation {
                 .addExtendedType("CommandData");
 
         //Adding all Commands
-        for(String command: commands) {
-            generateCommands(commCd,command);
+        for (String command : commands) {
+            generateCommands(commCd, command);
         }
 
         cd.addMember(commCd);
@@ -262,9 +309,10 @@ public class ContractCompilation {
 
     }
 
-    static void generateContractIdField(ClassOrInterfaceDeclaration cd,String packageName) {
+    static void generateContractIdField(ClassOrInterfaceDeclaration cd, String packageName) {
 
-        cd.addField("String","ID",PRIVATE,FINAL,STATIC).getVariable(0).setInitializer(new StringLiteralExpr(packageName));;
+        cd.addField("String", "ID", PRIVATE, FINAL, STATIC).getVariable(0).setInitializer(new StringLiteralExpr(packageName));
+        ;
     }
 
 

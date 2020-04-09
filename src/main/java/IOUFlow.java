@@ -10,18 +10,14 @@ import java.security.PublicKey;
 import java.util.Arrays;
 import java.util.List;
 
-// ******************
-// * Initiator flow *
-// ******************
+
 @InitiatingFlow
 @StartableByRPC
 public class IOUFlow extends FlowLogic<Void> {
     private final Integer iouValue;
     private final Party otherParty;
 
-    /**
-     * The progress tracker provides checkpoints indicating the progress of the flow to observers.
-     */
+
     private final ProgressTracker progressTracker = new ProgressTracker();
 
     public IOUFlow(Integer iouValue, Party otherParty) {
@@ -34,13 +30,10 @@ public class IOUFlow extends FlowLogic<Void> {
         return progressTracker;
     }
 
-    /**
-     * The flow logic is encapsulated within the call() method.
-     */
     @Suspendable
     @Override
     public Void call() throws FlowException {
-        // We retrieve the notary identity from the network map.
+
         Party notary = getServiceHub().getNetworkMapCache().getNotaryIdentities().get(0);
 
         // We create the transaction components.

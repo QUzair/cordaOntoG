@@ -1,0 +1,457 @@
+---
+root(Type=CompilationUnit): 
+    packageDeclaration(Type=PackageDeclaration): 
+        name(Type=Name): 
+            identifier: "templates"
+    imports: 
+        - import(Type=ImportDeclaration): 
+            isAsterisk: "false"
+            isStatic: "false"
+            name(Type=Name): 
+                identifier: "ImmutableList"
+                qualifier(Type=Name): 
+                    identifier: "collect"
+                    qualifier(Type=Name): 
+                        identifier: "common"
+                        qualifier(Type=Name): 
+                            identifier: "google"
+                            qualifier(Type=Name): 
+                                identifier: "com"
+        - import(Type=ImportDeclaration): 
+            isAsterisk: "false"
+            isStatic: "false"
+            name(Type=Name): 
+                identifier: "StateAndRef"
+                qualifier(Type=Name): 
+                    identifier: "contracts"
+                    qualifier(Type=Name): 
+                        identifier: "core"
+                        qualifier(Type=Name): 
+                            identifier: "corda"
+                            qualifier(Type=Name): 
+                                identifier: "net"
+        - import(Type=ImportDeclaration): 
+            isAsterisk: "false"
+            isStatic: "false"
+            name(Type=Name): 
+                identifier: "UniqueIdentifier"
+                qualifier(Type=Name): 
+                    identifier: "contracts"
+                    qualifier(Type=Name): 
+                        identifier: "core"
+                        qualifier(Type=Name): 
+                            identifier: "corda"
+                            qualifier(Type=Name): 
+                                identifier: "net"
+        - import(Type=ImportDeclaration): 
+            isAsterisk: "false"
+            isStatic: "false"
+            name(Type=Name): 
+                identifier: "FlowException"
+                qualifier(Type=Name): 
+                    identifier: "flows"
+                    qualifier(Type=Name): 
+                        identifier: "core"
+                        qualifier(Type=Name): 
+                            identifier: "corda"
+                            qualifier(Type=Name): 
+                                identifier: "net"
+        - import(Type=ImportDeclaration): 
+            isAsterisk: "false"
+            isStatic: "false"
+            name(Type=Name): 
+                identifier: "FlowLogic"
+                qualifier(Type=Name): 
+                    identifier: "flows"
+                    qualifier(Type=Name): 
+                        identifier: "core"
+                        qualifier(Type=Name): 
+                            identifier: "corda"
+                            qualifier(Type=Name): 
+                                identifier: "net"
+        - import(Type=ImportDeclaration): 
+            isAsterisk: "false"
+            isStatic: "false"
+            name(Type=Name): 
+                identifier: "FlowSession"
+                qualifier(Type=Name): 
+                    identifier: "flows"
+                    qualifier(Type=Name): 
+                        identifier: "core"
+                        qualifier(Type=Name): 
+                            identifier: "corda"
+                            qualifier(Type=Name): 
+                                identifier: "net"
+        - import(Type=ImportDeclaration): 
+            isAsterisk: "false"
+            isStatic: "false"
+            name(Type=Name): 
+                identifier: "SignTransactionFlow"
+                qualifier(Type=Name): 
+                    identifier: "flows"
+                    qualifier(Type=Name): 
+                        identifier: "core"
+                        qualifier(Type=Name): 
+                            identifier: "corda"
+                            qualifier(Type=Name): 
+                                identifier: "net"
+        - import(Type=ImportDeclaration): 
+            isAsterisk: "false"
+            isStatic: "false"
+            name(Type=Name): 
+                identifier: "Party"
+                qualifier(Type=Name): 
+                    identifier: "identity"
+                    qualifier(Type=Name): 
+                        identifier: "core"
+                        qualifier(Type=Name): 
+                            identifier: "corda"
+                            qualifier(Type=Name): 
+                                identifier: "net"
+        - import(Type=ImportDeclaration): 
+            isAsterisk: "false"
+            isStatic: "false"
+            name(Type=Name): 
+                identifier: "Vault"
+                qualifier(Type=Name): 
+                    identifier: "services"
+                    qualifier(Type=Name): 
+                        identifier: "node"
+                        qualifier(Type=Name): 
+                            identifier: "core"
+                            qualifier(Type=Name): 
+                                identifier: "corda"
+                                qualifier(Type=Name): 
+                                    identifier: "net"
+        - import(Type=ImportDeclaration): 
+            isAsterisk: "false"
+            isStatic: "false"
+            name(Type=Name): 
+                identifier: "QueryCriteria"
+                qualifier(Type=Name): 
+                    identifier: "vault"
+                    qualifier(Type=Name): 
+                        identifier: "services"
+                        qualifier(Type=Name): 
+                            identifier: "node"
+                            qualifier(Type=Name): 
+                                identifier: "core"
+                                qualifier(Type=Name): 
+                                    identifier: "corda"
+                                    qualifier(Type=Name): 
+                                        identifier: "net"
+        - import(Type=ImportDeclaration): 
+            isAsterisk: "false"
+            isStatic: "false"
+            name(Type=Name): 
+                identifier: "SignedTransaction"
+                qualifier(Type=Name): 
+                    identifier: "transactions"
+                    qualifier(Type=Name): 
+                        identifier: "core"
+                        qualifier(Type=Name): 
+                            identifier: "corda"
+                            qualifier(Type=Name): 
+                                identifier: "net"
+        - import(Type=ImportDeclaration): 
+            isAsterisk: "false"
+            isStatic: "false"
+            name(Type=Name): 
+                identifier: "ProgressTracker"
+                qualifier(Type=Name): 
+                    identifier: "utilities"
+                    qualifier(Type=Name): 
+                        identifier: "core"
+                        qualifier(Type=Name): 
+                            identifier: "corda"
+                            qualifier(Type=Name): 
+                                identifier: "net"
+        - import(Type=ImportDeclaration): 
+            isAsterisk: "false"
+            isStatic: "false"
+            name(Type=Name): 
+                identifier: "List"
+                qualifier(Type=Name): 
+                    identifier: "util"
+                    qualifier(Type=Name): 
+                        identifier: "java"
+    types: 
+        - type(Type=ClassOrInterfaceDeclaration): 
+            isInterface: "false"
+            name(Type=SimpleName): 
+                identifier: "IOUBaseFlow"
+            extendedTypes: 
+                - extendedType(Type=ClassOrInterfaceType): 
+                    name(Type=SimpleName): 
+                        identifier: "FlowLogic"
+                    typeArguments: 
+                        - typeArgument(Type=ClassOrInterfaceType): 
+                            name(Type=SimpleName): 
+                                identifier: "SignedTransaction"
+            members: 
+                - member(Type=MethodDeclaration): 
+                    body(Type=BlockStmt): 
+                        statements: 
+                            - statement(Type=ExpressionStmt): 
+                                expression(Type=VariableDeclarationExpr): 
+                                    variables: 
+                                        - variable(Type=VariableDeclarator): 
+                                            initializer(Type=MethodCallExpr): 
+                                                name(Type=SimpleName): 
+                                                    identifier: "getNotaryIdentities"
+                                                scope(Type=MethodCallExpr): 
+                                                    name(Type=SimpleName): 
+                                                        identifier: "getNetworkMapCache"
+                                                    scope(Type=MethodCallExpr): 
+                                                        name(Type=SimpleName): 
+                                                            identifier: "getServiceHub"
+                                            name(Type=SimpleName): 
+                                                identifier: "notaries"
+                                            type(Type=ClassOrInterfaceType): 
+                                                name(Type=SimpleName): 
+                                                    identifier: "List"
+                                                typeArguments: 
+                                                    - typeArgument(Type=ClassOrInterfaceType): 
+                                                        name(Type=SimpleName): 
+                                                            identifier: "Party"
+                            - statement(Type=IfStmt): 
+                                condition(Type=MethodCallExpr): 
+                                    name(Type=SimpleName): 
+                                        identifier: "isEmpty"
+                                    scope(Type=NameExpr): 
+                                        name(Type=SimpleName): 
+                                            identifier: "notaries"
+                                thenStmt(Type=BlockStmt): 
+                                    statements: 
+                                        - statement(Type=ThrowStmt): 
+                                            expression(Type=ObjectCreationExpr): 
+                                                type(Type=ClassOrInterfaceType): 
+                                                    name(Type=SimpleName): 
+                                                        identifier: "FlowException"
+                                                arguments: 
+                                                    - argument(Type=StringLiteralExpr): 
+                                                        value: "No available notary."
+                            - statement(Type=ReturnStmt): 
+                                expression(Type=MethodCallExpr): 
+                                    name(Type=SimpleName): 
+                                        identifier: "get"
+                                    scope(Type=NameExpr): 
+                                        name(Type=SimpleName): 
+                                            identifier: "notaries"
+                                    arguments: 
+                                        - argument(Type=IntegerLiteralExpr): 
+                                            value: "0"
+                    type(Type=ClassOrInterfaceType): 
+                        name(Type=SimpleName): 
+                            identifier: "Party"
+                    name(Type=SimpleName): 
+                        identifier: "getFirstNotary"
+                    thrownExceptions: 
+                        - thrownException(Type=ClassOrInterfaceType): 
+                            name(Type=SimpleName): 
+                                identifier: "FlowException"
+                - member(Type=MethodDeclaration): 
+                    body(Type=BlockStmt): 
+                        statements: 
+                            - statement(Type=ExpressionStmt): 
+                                expression(Type=VariableDeclarationExpr): 
+                                    variables: 
+                                        - variable(Type=VariableDeclarator): 
+                                            initializer(Type=ObjectCreationExpr): 
+                                                type(Type=ClassOrInterfaceType): 
+                                                    name(Type=SimpleName): 
+                                                        identifier: "LinearStateQueryCriteria"
+                                                    scope(Type=ClassOrInterfaceType): 
+                                                        name(Type=SimpleName): 
+                                                            identifier: "QueryCriteria"
+                                                arguments: 
+                                                    - argument(Type=NullLiteralExpr): 
+                                                    - argument(Type=MethodCallExpr): 
+                                                        name(Type=SimpleName): 
+                                                            identifier: "of"
+                                                        scope(Type=NameExpr): 
+                                                            name(Type=SimpleName): 
+                                                                identifier: "ImmutableList"
+                                                        arguments: 
+                                                            - argument(Type=NameExpr): 
+                                                                name(Type=SimpleName): 
+                                                                    identifier: "linearId"
+                                                    - argument(Type=FieldAccessExpr): 
+                                                        name(Type=SimpleName): 
+                                                            identifier: "UNCONSUMED"
+                                                        scope(Type=FieldAccessExpr): 
+                                                            name(Type=SimpleName): 
+                                                                identifier: "StateStatus"
+                                                            scope(Type=NameExpr): 
+                                                                name(Type=SimpleName): 
+                                                                    identifier: "Vault"
+                                                    - argument(Type=NullLiteralExpr): 
+                                            name(Type=SimpleName): 
+                                                identifier: "queryCriteria"
+                                            type(Type=ClassOrInterfaceType): 
+                                                name(Type=SimpleName): 
+                                                    identifier: "QueryCriteria"
+                            - statement(Type=ExpressionStmt): 
+                                expression(Type=VariableDeclarationExpr): 
+                                    variables: 
+                                        - variable(Type=VariableDeclarator): 
+                                            initializer(Type=MethodCallExpr): 
+                                                name(Type=SimpleName): 
+                                                    identifier: "getStates"
+                                                scope(Type=MethodCallExpr): 
+                                                    name(Type=SimpleName): 
+                                                        identifier: "queryBy"
+                                                    scope(Type=MethodCallExpr): 
+                                                        name(Type=SimpleName): 
+                                                            identifier: "getVaultService"
+                                                        scope(Type=MethodCallExpr): 
+                                                            name(Type=SimpleName): 
+                                                                identifier: "getServiceHub"
+                                                    arguments: 
+                                                        - argument(Type=ClassExpr): 
+                                                            type(Type=ClassOrInterfaceType): 
+                                                                name(Type=SimpleName): 
+                                                                    identifier: "IOUState"
+                                                        - argument(Type=NameExpr): 
+                                                            name(Type=SimpleName): 
+                                                                identifier: "queryCriteria"
+                                            name(Type=SimpleName): 
+                                                identifier: "obligations"
+                                            type(Type=ClassOrInterfaceType): 
+                                                name(Type=SimpleName): 
+                                                    identifier: "List"
+                                                typeArguments: 
+                                                    - typeArgument(Type=ClassOrInterfaceType): 
+                                                        name(Type=SimpleName): 
+                                                            identifier: "StateAndRef"
+                                                        typeArguments: 
+                                                            - typeArgument(Type=ClassOrInterfaceType): 
+                                                                name(Type=SimpleName): 
+                                                                    identifier: "IOUState"
+                            - statement(Type=IfStmt): 
+                                condition(Type=BinaryExpr): 
+                                    operator: "NOT_EQUALS"
+                                    left(Type=MethodCallExpr): 
+                                        name(Type=SimpleName): 
+                                            identifier: "size"
+                                        scope(Type=NameExpr): 
+                                            name(Type=SimpleName): 
+                                                identifier: "obligations"
+                                    right(Type=IntegerLiteralExpr): 
+                                        value: "1"
+                                thenStmt(Type=BlockStmt): 
+                                    statements: 
+                                        - statement(Type=ThrowStmt): 
+                                            expression(Type=ObjectCreationExpr): 
+                                                type(Type=ClassOrInterfaceType): 
+                                                    name(Type=SimpleName): 
+                                                        identifier: "FlowException"
+                                                arguments: 
+                                                    - argument(Type=MethodCallExpr): 
+                                                        name(Type=SimpleName): 
+                                                            identifier: "format"
+                                                        scope(Type=NameExpr): 
+                                                            name(Type=SimpleName): 
+                                                                identifier: "String"
+                                                        arguments: 
+                                                            - argument(Type=StringLiteralExpr): 
+                                                                value: "Obligation with id %s not found."
+                                                            - argument(Type=NameExpr): 
+                                                                name(Type=SimpleName): 
+                                                                    identifier: "linearId"
+                            - statement(Type=ReturnStmt): 
+                                expression(Type=MethodCallExpr): 
+                                    name(Type=SimpleName): 
+                                        identifier: "get"
+                                    scope(Type=NameExpr): 
+                                        name(Type=SimpleName): 
+                                            identifier: "obligations"
+                                    arguments: 
+                                        - argument(Type=IntegerLiteralExpr): 
+                                            value: "0"
+                    type(Type=ClassOrInterfaceType): 
+                        name(Type=SimpleName): 
+                            identifier: "StateAndRef"
+                        typeArguments: 
+                            - typeArgument(Type=ClassOrInterfaceType): 
+                                name(Type=SimpleName): 
+                                    identifier: "IOUState"
+                    name(Type=SimpleName): 
+                        identifier: "getObligationByLinearId"
+                    parameters: 
+                        - parameter(Type=Parameter): 
+                            isVarArgs: "false"
+                            name(Type=SimpleName): 
+                                identifier: "linearId"
+                            type(Type=ClassOrInterfaceType): 
+                                name(Type=SimpleName): 
+                                    identifier: "UniqueIdentifier"
+                    thrownExceptions: 
+                        - thrownException(Type=ClassOrInterfaceType): 
+                            name(Type=SimpleName): 
+                                identifier: "FlowException"
+                - member(Type=ClassOrInterfaceDeclaration): 
+                    isInterface: "false"
+                    name(Type=SimpleName): 
+                        identifier: "SignTxFlowNoChecking"
+                    extendedTypes: 
+                        - extendedType(Type=ClassOrInterfaceType): 
+                            name(Type=SimpleName): 
+                                identifier: "SignTransactionFlow"
+                    members: 
+                        - member(Type=ConstructorDeclaration): 
+                            body(Type=BlockStmt): 
+                                statements: 
+                                    - statement(Type=ExplicitConstructorInvocationStmt): 
+                                        isThis: "false"
+                                        arguments: 
+                                            - argument(Type=NameExpr): 
+                                                name(Type=SimpleName): 
+                                                    identifier: "otherFlow"
+                                            - argument(Type=NameExpr): 
+                                                name(Type=SimpleName): 
+                                                    identifier: "progressTracker"
+                            name(Type=SimpleName): 
+                                identifier: "SignTxFlowNoChecking"
+                            parameters: 
+                                - parameter(Type=Parameter): 
+                                    isVarArgs: "false"
+                                    name(Type=SimpleName): 
+                                        identifier: "otherFlow"
+                                    type(Type=ClassOrInterfaceType): 
+                                        name(Type=SimpleName): 
+                                            identifier: "FlowSession"
+                                - parameter(Type=Parameter): 
+                                    isVarArgs: "false"
+                                    name(Type=SimpleName): 
+                                        identifier: "progressTracker"
+                                    type(Type=ClassOrInterfaceType): 
+                                        name(Type=SimpleName): 
+                                            identifier: "ProgressTracker"
+                        - member(Type=MethodDeclaration): 
+                            body(Type=BlockStmt): 
+                            type(Type=VoidType): 
+                            name(Type=SimpleName): 
+                                identifier: "checkTransaction"
+                            modifiers: 
+                                - modifier(Type=Modifier): 
+                                    keyword: "PROTECTED"
+                            parameters: 
+                                - parameter(Type=Parameter): 
+                                    isVarArgs: "false"
+                                    name(Type=SimpleName): 
+                                        identifier: "tx"
+                                    type(Type=ClassOrInterfaceType): 
+                                        name(Type=SimpleName): 
+                                            identifier: "SignedTransaction"
+                            annotations: 
+                                - annotation(Type=MarkerAnnotationExpr): 
+                                    name(Type=Name): 
+                                        identifier: "Override"
+                    modifiers: 
+                        - modifier(Type=Modifier): 
+                            keyword: "STATIC"
+            modifiers: 
+                - modifier(Type=Modifier): 
+                    keyword: "ABSTRACT"
+...

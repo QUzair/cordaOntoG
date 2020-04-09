@@ -1,0 +1,90 @@
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix corda: <http://cordaO.org/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema/> .
+
+# Defining Application Parameters
+corda:cdp1 a corda:CordDapp ;
+    corda:hasName "Obligation" ;
+    corda:hasDescription "A simple application to Issue Obligations due between a lender and a borrower" ;
+    corda:myIdentity corda:p1 .
+
+corda:p1 a corda:Party .
+
+# Defining State
+corda:sp1 a corda:StateProperty ;
+            corda:propertyName "value"^^xsd:string ;
+            corda:datatype "int"^^xsd:string .
+
+corda:sp2 a corda:StateProperty ;
+            corda:propertyName "borrower"^^xsd:string ;
+            corda:datatype "Party"^^xsd:string .
+
+corda:sp3 a corda:StateProperty ;
+            corda:propertyName "lender"^^xsd:string ;
+            corda:datatype "Party"^^xsd:string .
+
+corda:s1  a corda:State ;
+        corda:stateName "IOUState"^^xsd:string;
+        corda:hasProperty corda:sp1 ;
+        corda:hasProperty corda:sp2 ;
+        corda:hasProperty corda:sp3 .
+
+# Defining Commands
+corda:comIss a corda:Command ;
+    corda:commandName "Issue"^^xsd:string .
+
+corda:comTrans a corda:Command ;
+    corda:commandName "Transfer"^^xsd:string .
+
+#Defining Contract
+corda:contract1 a corda:Contract ;
+    corda:hasCommand corda:comIss ;
+    corda:hasCommand corda:comTrans .
+
+# Defining Flow Properties
+corda:fp1 a corda:FlowProperty ;
+            corda:propertyName "iouValue"^^xsd:string ;
+            corda:datatype "Integer"^^xsd:string .
+
+corda:fp2 a corda:FlowProperty ;
+            corda:propertyName "otherParty"^^xsd:string ;
+            corda:datatype "Party"^^xsd:string .
+
+# New Issued Obligation State
+corda:s2  a corda:State ;
+        corda:stateName "IOUState"^^xsd:string;
+        corda:hasProperty corda:fp1 ;
+        corda:hasProperty corda:fp2 ;
+        corda:hasProperty corda:sp3 .
+
+# Built Transaction for Issue Flow
+corda:t1 a corda:Transaction ;
+    corda:hasCommand corda:comIss ;
+    corda:hasOutputStates corda:s2 .
+
+# Defining Transaction Flow
+corda:f1 a corda:Flow ;
+    corda:flowName "IssueFlow" ;
+    corda:hasProperty corda:fp1 ;
+    corda:hasProperty corda:fp2 ;
+    corda:hasTransaction corda:t1 .
+
+
+## Define Contract Constraints
+corda:constraint1 a corda:Constraint ;
+    corda:hasDescription "The lender and borrower cannot be the same identity."^^xsd:string ;
+    corda:hasCondition corda:sp3 .
+
+corda:constraint2 a corda:Constraint ;
+    corda:hasDescription "A newly issued obligation must have a positive amount."^^xsd:string ;
+    corda:hasCondition corda:sp1 .
+
+
+corda:sp3 corda:notEquals corda:sp2 .
+corda:sp1 corda:greaterThan 0 .
+
+
+

@@ -12,13 +12,12 @@ import java.util.regex.Pattern;
 
 public class ModifierVisitingStarter {
 
-    private static final String FILE_PATH = "src/main/java/TemplateState.java";
+    private static final String FILE_PATH = "src/main/java/IOUFlow.java";
 
     public static void main(String[] args) throws Exception {
         CompilationUnit cu = StaticJavaParser.parse(new File(FILE_PATH));
         ModifierVisitor<?> numericLiteralVisitor = new IntegerLiteralModifier();
         numericLiteralVisitor.visit(cu,null);
-//        System.out.println(cu.toString());
     }
 
     private static class IntegerLiteralModifier extends ModifierVisitor<Void> {
@@ -26,11 +25,9 @@ public class ModifierVisitingStarter {
         @Override
         public FieldDeclaration visit(FieldDeclaration fd, Void arg) {
             super.visit(fd, arg);
-
             fd.getVariables().forEach(v -> v.getInitializer().ifPresent(i -> {
                 System.out.println(v.getInitializer().toString());
             }));
-
             return fd;
         }
     }

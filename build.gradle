@@ -14,7 +14,7 @@ repositories {
 
 ext {
     corda_release_group = 'net.corda'
-    corda_release_version = '3.3-corda'
+    corda_release_version = '4.3'
     corda_gradle_plugins_version = '3.2.1'
     junit_version = '4.12'
     quasar_version = '0.7.9'
@@ -36,7 +36,10 @@ dependencies {
     compile 'com.fasterxml.jackson.core:jackson-annotations:2.4.1'
     compile 'com.fasterxml.jackson.core:jackson-databind:2.4.1'
 
-
+    // CorDapp dependencies.
+    implementation "$corda_release_group:corda-finance-contracts:$corda_release_version"
+    implementation "$corda_release_group:corda-finance-workflows:$corda_release_version"
+    implementation "$corda_release_group:corda-confidential-identities:$corda_release_version"
 
 
     // Corda dependencies.

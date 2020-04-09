@@ -53,10 +53,10 @@ public class TemplateContract implements Contract {
 
         requireThat(req -> {
             TemplateState iouState = (TemplateState) tx.getOutputStates().get(0);
-            req.using("No inputs should be consumed when issuing an obligation.", tx.getInputStates().isEmpty());
+            req.using("No inputs should be consumed when issuing an obligation.", tx.getInputStates().size()==0);
             req.using("Only one obligation state should be created when issuing an obligation.", tx.getOutputStates().size() == 1);
             req.using("A newly issued obligation must have a positive amount.", iouState.getValue() > 0);
-            req.using("The lender and borrower cannot be the same identity.", !iouState.getBorrower().equals(iouState.getLender()));
+            req.using("The lender and borrower cannot be the same identity.", iouState.getBorrower()!=iouState.getLender());
             req.using("Both lender and borrower together only may sign obligation issue transaction.", signers.equals(keysFromParticipants(iouState)));
             return null;
         });

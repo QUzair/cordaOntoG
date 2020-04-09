@@ -1,50 +1,26 @@
-package com.contracts;
+package com.flows;
 
-import net.corda.core.contracts.CommandData;
-import net.corda.core.contracts.CommandWithParties;
-import net.corda.core.contracts.Contract;
-import net.corda.core.contracts.TypeOnlyCommandData;
-import net.corda.core.identity.AbstractParty;
-import net.corda.core.transactions.LedgerTransaction;
-import java.security.PublicKey;
-import java.util.HashSet;
-import java.util.Set;
-import static java.util.stream.Collectors.toSet;
-import static net.corda.core.contracts.ContractsDSL.requireSingleCommand;
-import static net.corda.core.contracts.ContractsDSL.requireThat;
+import com.google.common.collect.ImmutableList;
+import net.corda.core.contracts.StateAndRef;
+import net.corda.core.contracts.UniqueIdentifier;
+import net.corda.core.flows.FlowException;
+import net.corda.core.flows.FlowLogic;
+import net.corda.core.flows.FlowSession;
+import net.corda.core.flows.SignTransactionFlow;
+import net.corda.core.identity.Party;
+import net.corda.core.node.services.Vault;
+import net.corda.core.node.services.vault.QueryCriteria;
+import net.corda.core.transactions.SignedTransaction;
+import net.corda.core.utilities.ProgressTracker;
+import java.util.List;
 
-public class IOUContract implements Contract {
+abstract class IOUBaseFlow extends FlowLogic<SignedTransaction> {
 
-    private final static String ID = "com.template.IOUContract";
-
-    public interface Commands extends CommandData {
-
-        class Issue extends TypeOnlyCommandData implements Commands {
+    Party getFirstNotary() throws FlowException {
+        List<Party> notaries = getServiceHub().getNetworkMapCache().getNotaryIdentities();
+        if (notaries.isEmpty()) {
+            throw new FlowException("No available Notary.");
         }
-
-        class Transfer extends TypeOnlyCommandData implements Commands {
-        }
-    }
-
-    @Override
-    public void verify(LedgerTransaction tx) {
-        final CommandWithParties<Commands> command = requireSingleCommand(tx.getCommands(), Commands.class);
-        final Commands commandData = command.getValue();
-        final Set<PublicKey> setOfSigners = new HashSet<>(command.getSigners());
-        if (commandData instanceof Commands.Issue)
-            verifyIssue(tx, setOfSigners);
-        if (commandData instanceof Commands.Transfer)
-            verifyTransfer(tx, setOfSigners);
-    }
-
-    private Set<PublicKey> keysFromParticipants(IOUState iouState) {
-        return iouState.getParticipants().stream().map(AbstractParty::getOwningKey).collect(toSet());
-    }
-
-    private void verifyIssue(LedgerTransaction tx, Set<PublicKey> signers) {
-        requireThat(empty req -> {
-            TemplateState iouState = (TemplateState) tx.getOutputStates().get(0);
-            req.using("No inputs to be consumed", tx.getInputStates().isEmpty());
-        });
+        return notaries.get(0);
     }
 }
