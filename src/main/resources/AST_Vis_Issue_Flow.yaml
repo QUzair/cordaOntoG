@@ -1,0 +1,1046 @@
+---
+root(Type=CompilationUnit): 
+    packageDeclaration(Type=PackageDeclaration): 
+        name(Type=Name): 
+            identifier: "templates"
+    imports: 
+        - import(Type=ImportDeclaration): 
+            isAsterisk: "false"
+            isStatic: "false"
+            name(Type=Name): 
+                identifier: "Suspendable"
+                qualifier(Type=Name): 
+                    identifier: "fibers"
+                    qualifier(Type=Name): 
+                        identifier: "paralleluniverse"
+                        qualifier(Type=Name): 
+                            identifier: "co"
+        - import(Type=ImportDeclaration): 
+            isAsterisk: "false"
+            isStatic: "false"
+            name(Type=Name): 
+                identifier: "ImmutableList"
+                qualifier(Type=Name): 
+                    identifier: "collect"
+                    qualifier(Type=Name): 
+                        identifier: "common"
+                        qualifier(Type=Name): 
+                            identifier: "google"
+                            qualifier(Type=Name): 
+                                identifier: "com"
+        - import(Type=ImportDeclaration): 
+            isAsterisk: "false"
+            isStatic: "false"
+            name(Type=Name): 
+                identifier: "ImmutableSet"
+                qualifier(Type=Name): 
+                    identifier: "collect"
+                    qualifier(Type=Name): 
+                        identifier: "common"
+                        qualifier(Type=Name): 
+                            identifier: "google"
+                            qualifier(Type=Name): 
+                                identifier: "com"
+        - import(Type=ImportDeclaration): 
+            isAsterisk: "false"
+            isStatic: "false"
+            name(Type=Name): 
+                identifier: "Amount"
+                qualifier(Type=Name): 
+                    identifier: "contracts"
+                    qualifier(Type=Name): 
+                        identifier: "core"
+                        qualifier(Type=Name): 
+                            identifier: "corda"
+                            qualifier(Type=Name): 
+                                identifier: "net"
+        - import(Type=ImportDeclaration): 
+            isAsterisk: "false"
+            isStatic: "false"
+            name(Type=Name): 
+                identifier: "UniqueIdentifier"
+                qualifier(Type=Name): 
+                    identifier: "contracts"
+                    qualifier(Type=Name): 
+                        identifier: "core"
+                        qualifier(Type=Name): 
+                            identifier: "corda"
+                            qualifier(Type=Name): 
+                                identifier: "net"
+        - import(Type=ImportDeclaration): 
+            isAsterisk: "true"
+            isStatic: "false"
+            name(Type=Name): 
+                identifier: "flows"
+                qualifier(Type=Name): 
+                    identifier: "core"
+                    qualifier(Type=Name): 
+                        identifier: "corda"
+                        qualifier(Type=Name): 
+                            identifier: "net"
+        - import(Type=ImportDeclaration): 
+            isAsterisk: "false"
+            isStatic: "false"
+            name(Type=Name): 
+                identifier: "Party"
+                qualifier(Type=Name): 
+                    identifier: "identity"
+                    qualifier(Type=Name): 
+                        identifier: "core"
+                        qualifier(Type=Name): 
+                            identifier: "corda"
+                            qualifier(Type=Name): 
+                                identifier: "net"
+        - import(Type=ImportDeclaration): 
+            isAsterisk: "false"
+            isStatic: "false"
+            name(Type=Name): 
+                identifier: "SignedTransaction"
+                qualifier(Type=Name): 
+                    identifier: "transactions"
+                    qualifier(Type=Name): 
+                        identifier: "core"
+                        qualifier(Type=Name): 
+                            identifier: "corda"
+                            qualifier(Type=Name): 
+                                identifier: "net"
+        - import(Type=ImportDeclaration): 
+            isAsterisk: "false"
+            isStatic: "false"
+            name(Type=Name): 
+                identifier: "TransactionBuilder"
+                qualifier(Type=Name): 
+                    identifier: "transactions"
+                    qualifier(Type=Name): 
+                        identifier: "core"
+                        qualifier(Type=Name): 
+                            identifier: "corda"
+                            qualifier(Type=Name): 
+                                identifier: "net"
+        - import(Type=ImportDeclaration): 
+            isAsterisk: "false"
+            isStatic: "false"
+            name(Type=Name): 
+                identifier: "ProgressTracker"
+                qualifier(Type=Name): 
+                    identifier: "utilities"
+                    qualifier(Type=Name): 
+                        identifier: "core"
+                        qualifier(Type=Name): 
+                            identifier: "corda"
+                            qualifier(Type=Name): 
+                                identifier: "net"
+        - import(Type=ImportDeclaration): 
+            isAsterisk: "false"
+            isStatic: "false"
+            name(Type=Name): 
+                identifier: "Step"
+                qualifier(Type=Name): 
+                    identifier: "ProgressTracker"
+                    qualifier(Type=Name): 
+                        identifier: "utilities"
+                        qualifier(Type=Name): 
+                            identifier: "core"
+                            qualifier(Type=Name): 
+                                identifier: "corda"
+                                qualifier(Type=Name): 
+                                    identifier: "net"
+        - import(Type=ImportDeclaration): 
+            isAsterisk: "false"
+            isStatic: "false"
+            name(Type=Name): 
+                identifier: "PublicKey"
+                qualifier(Type=Name): 
+                    identifier: "security"
+                    qualifier(Type=Name): 
+                        identifier: "java"
+        - import(Type=ImportDeclaration): 
+            isAsterisk: "false"
+            isStatic: "false"
+            name(Type=Name): 
+                identifier: "Duration"
+                qualifier(Type=Name): 
+                    identifier: "time"
+                    qualifier(Type=Name): 
+                        identifier: "java"
+        - import(Type=ImportDeclaration): 
+            isAsterisk: "false"
+            isStatic: "false"
+            name(Type=Name): 
+                identifier: "Currency"
+                qualifier(Type=Name): 
+                    identifier: "util"
+                    qualifier(Type=Name): 
+                        identifier: "java"
+        - import(Type=ImportDeclaration): 
+            isAsterisk: "false"
+            isStatic: "false"
+            name(Type=Name): 
+                identifier: "List"
+                qualifier(Type=Name): 
+                    identifier: "util"
+                    qualifier(Type=Name): 
+                        identifier: "java"
+    types: 
+        - type(Type=ClassOrInterfaceDeclaration): 
+            isInterface: "false"
+            name(Type=SimpleName): 
+                identifier: "IssueIOU"
+            members: 
+                - member(Type=ClassOrInterfaceDeclaration): 
+                    isInterface: "false"
+                    name(Type=SimpleName): 
+                        identifier: "Initiator"
+                    extendedTypes: 
+                        - extendedType(Type=ClassOrInterfaceType): 
+                            name(Type=SimpleName): 
+                                identifier: "IOUBaseFlow"
+                    members: 
+                        - member(Type=FieldDeclaration): 
+                            modifiers: 
+                                - modifier(Type=Modifier): 
+                                    keyword: "PRIVATE"
+                                - modifier(Type=Modifier): 
+                                    keyword: "FINAL"
+                            variables: 
+                                - variable(Type=VariableDeclarator): 
+                                    name(Type=SimpleName): 
+                                        identifier: "amount"
+                                    type(Type=ClassOrInterfaceType): 
+                                        name(Type=SimpleName): 
+                                            identifier: "Amount"
+                                        typeArguments: 
+                                            - typeArgument(Type=ClassOrInterfaceType): 
+                                                name(Type=SimpleName): 
+                                                    identifier: "Currency"
+                        - member(Type=FieldDeclaration): 
+                            modifiers: 
+                                - modifier(Type=Modifier): 
+                                    keyword: "PRIVATE"
+                                - modifier(Type=Modifier): 
+                                    keyword: "FINAL"
+                            variables: 
+                                - variable(Type=VariableDeclarator): 
+                                    name(Type=SimpleName): 
+                                        identifier: "lender"
+                                    type(Type=ClassOrInterfaceType): 
+                                        name(Type=SimpleName): 
+                                            identifier: "Party"
+                        - member(Type=FieldDeclaration): 
+                            modifiers: 
+                                - modifier(Type=Modifier): 
+                                    keyword: "PRIVATE"
+                                - modifier(Type=Modifier): 
+                                    keyword: "FINAL"
+                            variables: 
+                                - variable(Type=VariableDeclarator): 
+                                    name(Type=SimpleName): 
+                                        identifier: "externalId"
+                                    type(Type=ClassOrInterfaceType): 
+                                        name(Type=SimpleName): 
+                                            identifier: "String"
+                        - member(Type=FieldDeclaration): 
+                            modifiers: 
+                                - modifier(Type=Modifier): 
+                                    keyword: "PRIVATE"
+                                - modifier(Type=Modifier): 
+                                    keyword: "FINAL"
+                            variables: 
+                                - variable(Type=VariableDeclarator): 
+                                    initializer(Type=ObjectCreationExpr): 
+                                        type(Type=ClassOrInterfaceType): 
+                                            name(Type=SimpleName): 
+                                                identifier: "Step"
+                                        arguments: 
+                                            - argument(Type=StringLiteralExpr): 
+                                                value: "Performing initial steps."
+                                    name(Type=SimpleName): 
+                                        identifier: "INITIALISING"
+                                    type(Type=ClassOrInterfaceType): 
+                                        name(Type=SimpleName): 
+                                            identifier: "Step"
+                        - member(Type=FieldDeclaration): 
+                            modifiers: 
+                                - modifier(Type=Modifier): 
+                                    keyword: "PRIVATE"
+                                - modifier(Type=Modifier): 
+                                    keyword: "FINAL"
+                            variables: 
+                                - variable(Type=VariableDeclarator): 
+                                    initializer(Type=ObjectCreationExpr): 
+                                        type(Type=ClassOrInterfaceType): 
+                                            name(Type=SimpleName): 
+                                                identifier: "Step"
+                                        arguments: 
+                                            - argument(Type=StringLiteralExpr): 
+                                                value: "Building Transaction."
+                                    name(Type=SimpleName): 
+                                        identifier: "BUILDING"
+                                    type(Type=ClassOrInterfaceType): 
+                                        name(Type=SimpleName): 
+                                            identifier: "Step"
+                        - member(Type=FieldDeclaration): 
+                            modifiers: 
+                                - modifier(Type=Modifier): 
+                                    keyword: "PRIVATE"
+                                - modifier(Type=Modifier): 
+                                    keyword: "FINAL"
+                            variables: 
+                                - variable(Type=VariableDeclarator): 
+                                    initializer(Type=ObjectCreationExpr): 
+                                        type(Type=ClassOrInterfaceType): 
+                                            name(Type=SimpleName): 
+                                                identifier: "Step"
+                                        arguments: 
+                                            - argument(Type=StringLiteralExpr): 
+                                                value: "Signing transaction."
+                                    name(Type=SimpleName): 
+                                        identifier: "SIGNING"
+                                    type(Type=ClassOrInterfaceType): 
+                                        name(Type=SimpleName): 
+                                            identifier: "Step"
+                        - member(Type=FieldDeclaration): 
+                            modifiers: 
+                                - modifier(Type=Modifier): 
+                                    keyword: "PRIVATE"
+                                - modifier(Type=Modifier): 
+                                    keyword: "FINAL"
+                            variables: 
+                                - variable(Type=VariableDeclarator): 
+                                    initializer(Type=ObjectCreationExpr): 
+                                        type(Type=ClassOrInterfaceType): 
+                                            name(Type=SimpleName): 
+                                                identifier: "Step"
+                                        anonymousClassBody: 
+                                            - anonymousClassBody(Type=MethodDeclaration): 
+                                                body(Type=BlockStmt): 
+                                                    statements: 
+                                                        - statement(Type=ReturnStmt): 
+                                                            expression(Type=MethodCallExpr): 
+                                                                name(Type=SimpleName): 
+                                                                    identifier: "tracker"
+                                                                scope(Type=FieldAccessExpr): 
+                                                                    name(Type=SimpleName): 
+                                                                        identifier: "Companion"
+                                                                    scope(Type=NameExpr): 
+                                                                        name(Type=SimpleName): 
+                                                                            identifier: "CollectSignaturesFlow"
+                                                type(Type=ClassOrInterfaceType): 
+                                                    name(Type=SimpleName): 
+                                                        identifier: "ProgressTracker"
+                                                name(Type=SimpleName): 
+                                                    identifier: "childProgressTracker"
+                                                modifiers: 
+                                                    - modifier(Type=Modifier): 
+                                                        keyword: "PUBLIC"
+                                                annotations: 
+                                                    - annotation(Type=MarkerAnnotationExpr): 
+                                                        name(Type=Name): 
+                                                            identifier: "Override"
+                                        arguments: 
+                                            - argument(Type=StringLiteralExpr): 
+                                                value: "Collecting counterparty signature."
+                                    name(Type=SimpleName): 
+                                        identifier: "COLLECTING"
+                                    type(Type=ClassOrInterfaceType): 
+                                        name(Type=SimpleName): 
+                                            identifier: "Step"
+                        - member(Type=FieldDeclaration): 
+                            modifiers: 
+                                - modifier(Type=Modifier): 
+                                    keyword: "PRIVATE"
+                                - modifier(Type=Modifier): 
+                                    keyword: "FINAL"
+                            variables: 
+                                - variable(Type=VariableDeclarator): 
+                                    initializer(Type=ObjectCreationExpr): 
+                                        type(Type=ClassOrInterfaceType): 
+                                            name(Type=SimpleName): 
+                                                identifier: "Step"
+                                        anonymousClassBody: 
+                                            - anonymousClassBody(Type=MethodDeclaration): 
+                                                body(Type=BlockStmt): 
+                                                    statements: 
+                                                        - statement(Type=ReturnStmt): 
+                                                            expression(Type=MethodCallExpr): 
+                                                                name(Type=SimpleName): 
+                                                                    identifier: "tracker"
+                                                                scope(Type=FieldAccessExpr): 
+                                                                    name(Type=SimpleName): 
+                                                                        identifier: "Companion"
+                                                                    scope(Type=NameExpr): 
+                                                                        name(Type=SimpleName): 
+                                                                            identifier: "FinalityFlow"
+                                                type(Type=ClassOrInterfaceType): 
+                                                    name(Type=SimpleName): 
+                                                        identifier: "ProgressTracker"
+                                                name(Type=SimpleName): 
+                                                    identifier: "childProgressTracker"
+                                                modifiers: 
+                                                    - modifier(Type=Modifier): 
+                                                        keyword: "PUBLIC"
+                                                annotations: 
+                                                    - annotation(Type=MarkerAnnotationExpr): 
+                                                        name(Type=Name): 
+                                                            identifier: "Override"
+                                        arguments: 
+                                            - argument(Type=StringLiteralExpr): 
+                                                value: "Finalising transaction."
+                                    name(Type=SimpleName): 
+                                        identifier: "FINALISING"
+                                    type(Type=ClassOrInterfaceType): 
+                                        name(Type=SimpleName): 
+                                            identifier: "Step"
+                        - member(Type=FieldDeclaration): 
+                            modifiers: 
+                                - modifier(Type=Modifier): 
+                                    keyword: "PRIVATE"
+                                - modifier(Type=Modifier): 
+                                    keyword: "FINAL"
+                            variables: 
+                                - variable(Type=VariableDeclarator): 
+                                    initializer(Type=ObjectCreationExpr): 
+                                        type(Type=ClassOrInterfaceType): 
+                                            name(Type=SimpleName): 
+                                                identifier: "ProgressTracker"
+                                        arguments: 
+                                            - argument(Type=NameExpr): 
+                                                name(Type=SimpleName): 
+                                                    identifier: "INITIALISING"
+                                            - argument(Type=NameExpr): 
+                                                name(Type=SimpleName): 
+                                                    identifier: "BUILDING"
+                                            - argument(Type=NameExpr): 
+                                                name(Type=SimpleName): 
+                                                    identifier: "SIGNING"
+                                            - argument(Type=NameExpr): 
+                                                name(Type=SimpleName): 
+                                                    identifier: "COLLECTING"
+                                            - argument(Type=NameExpr): 
+                                                name(Type=SimpleName): 
+                                                    identifier: "FINALISING"
+                                    name(Type=SimpleName): 
+                                        identifier: "progressTracker"
+                                    type(Type=ClassOrInterfaceType): 
+                                        name(Type=SimpleName): 
+                                            identifier: "ProgressTracker"
+                        - member(Type=ConstructorDeclaration): 
+                            body(Type=BlockStmt): 
+                                statements: 
+                                    - statement(Type=ExpressionStmt): 
+                                        expression(Type=AssignExpr): 
+                                            operator: "ASSIGN"
+                                            target(Type=FieldAccessExpr): 
+                                                name(Type=SimpleName): 
+                                                    identifier: "amount"
+                                                scope(Type=ThisExpr): 
+                                            value(Type=NameExpr): 
+                                                name(Type=SimpleName): 
+                                                    identifier: "amount"
+                                    - statement(Type=ExpressionStmt): 
+                                        expression(Type=AssignExpr): 
+                                            operator: "ASSIGN"
+                                            target(Type=FieldAccessExpr): 
+                                                name(Type=SimpleName): 
+                                                    identifier: "lender"
+                                                scope(Type=ThisExpr): 
+                                            value(Type=NameExpr): 
+                                                name(Type=SimpleName): 
+                                                    identifier: "lender"
+                                    - statement(Type=ExpressionStmt): 
+                                        expression(Type=AssignExpr): 
+                                            operator: "ASSIGN"
+                                            target(Type=FieldAccessExpr): 
+                                                name(Type=SimpleName): 
+                                                    identifier: "externalId"
+                                                scope(Type=ThisExpr): 
+                                            value(Type=NameExpr): 
+                                                name(Type=SimpleName): 
+                                                    identifier: "externalId"
+                            name(Type=SimpleName): 
+                                identifier: "Initiator"
+                            modifiers: 
+                                - modifier(Type=Modifier): 
+                                    keyword: "PUBLIC"
+                            parameters: 
+                                - parameter(Type=Parameter): 
+                                    isVarArgs: "false"
+                                    name(Type=SimpleName): 
+                                        identifier: "amount"
+                                    type(Type=ClassOrInterfaceType): 
+                                        name(Type=SimpleName): 
+                                            identifier: "Amount"
+                                        typeArguments: 
+                                            - typeArgument(Type=ClassOrInterfaceType): 
+                                                name(Type=SimpleName): 
+                                                    identifier: "Currency"
+                                - parameter(Type=Parameter): 
+                                    isVarArgs: "false"
+                                    name(Type=SimpleName): 
+                                        identifier: "lender"
+                                    type(Type=ClassOrInterfaceType): 
+                                        name(Type=SimpleName): 
+                                            identifier: "Party"
+                                - parameter(Type=Parameter): 
+                                    isVarArgs: "false"
+                                    name(Type=SimpleName): 
+                                        identifier: "externalId"
+                                    type(Type=ClassOrInterfaceType): 
+                                        name(Type=SimpleName): 
+                                            identifier: "String"
+                        - member(Type=MethodDeclaration): 
+                            body(Type=BlockStmt): 
+                                statements: 
+                                    - statement(Type=ReturnStmt): 
+                                        expression(Type=NameExpr): 
+                                            name(Type=SimpleName): 
+                                                identifier: "progressTracker"
+                            type(Type=ClassOrInterfaceType): 
+                                name(Type=SimpleName): 
+                                    identifier: "ProgressTracker"
+                            name(Type=SimpleName): 
+                                identifier: "getProgressTracker"
+                            modifiers: 
+                                - modifier(Type=Modifier): 
+                                    keyword: "PUBLIC"
+                            annotations: 
+                                - annotation(Type=MarkerAnnotationExpr): 
+                                    name(Type=Name): 
+                                        identifier: "Override"
+                        - member(Type=MethodDeclaration): 
+                            body(Type=BlockStmt): 
+                                statements: 
+                                    - statement(Type=ExpressionStmt): 
+                                        expression(Type=MethodCallExpr): 
+                                            name(Type=SimpleName): 
+                                                identifier: "setCurrentStep"
+                                            scope(Type=NameExpr): 
+                                                name(Type=SimpleName): 
+                                                    identifier: "progressTracker"
+                                            arguments: 
+                                                - argument(Type=NameExpr): 
+                                                    name(Type=SimpleName): 
+                                                        identifier: "INITIALISING"
+                                        comment(Type=LineComment): 
+                                            content: " Step 1. Initialisation."
+                                    - statement(Type=ExpressionStmt): 
+                                        expression(Type=VariableDeclarationExpr): 
+                                            modifiers: 
+                                                - modifier(Type=Modifier): 
+                                                    keyword: "FINAL"
+                                            variables: 
+                                                - variable(Type=VariableDeclarator): 
+                                                    initializer(Type=ObjectCreationExpr): 
+                                                        type(Type=ClassOrInterfaceType): 
+                                                            name(Type=SimpleName): 
+                                                                identifier: "IOUState"
+                                                        arguments: 
+                                                            - argument(Type=NameExpr): 
+                                                                name(Type=SimpleName): 
+                                                                    identifier: "amount"
+                                                            - argument(Type=NameExpr): 
+                                                                name(Type=SimpleName): 
+                                                                    identifier: "lender"
+                                                            - argument(Type=MethodCallExpr): 
+                                                                name(Type=SimpleName): 
+                                                                    identifier: "getOurIdentity"
+                                                            - argument(Type=ObjectCreationExpr): 
+                                                                type(Type=ClassOrInterfaceType): 
+                                                                    name(Type=SimpleName): 
+                                                                        identifier: "UniqueIdentifier"
+                                                                arguments: 
+                                                                    - argument(Type=NameExpr): 
+                                                                        name(Type=SimpleName): 
+                                                                            identifier: "externalId"
+                                                    name(Type=SimpleName): 
+                                                        identifier: "obligation"
+                                                    type(Type=ClassOrInterfaceType): 
+                                                        name(Type=SimpleName): 
+                                                            identifier: "IOUState"
+                                    - statement(Type=ExpressionStmt): 
+                                        expression(Type=VariableDeclarationExpr): 
+                                            modifiers: 
+                                                - modifier(Type=Modifier): 
+                                                    keyword: "FINAL"
+                                            variables: 
+                                                - variable(Type=VariableDeclarator): 
+                                                    initializer(Type=MethodCallExpr): 
+                                                        name(Type=SimpleName): 
+                                                            identifier: "getOwningKey"
+                                                        scope(Type=MethodCallExpr): 
+                                                            name(Type=SimpleName): 
+                                                                identifier: "getOurIdentity"
+                                                    name(Type=SimpleName): 
+                                                        identifier: "ourSigningKey"
+                                                    type(Type=ClassOrInterfaceType): 
+                                                        name(Type=SimpleName): 
+                                                            identifier: "PublicKey"
+                                    - statement(Type=ExpressionStmt): 
+                                        expression(Type=VariableDeclarationExpr): 
+                                            modifiers: 
+                                                - modifier(Type=Modifier): 
+                                                    keyword: "FINAL"
+                                            variables: 
+                                                - variable(Type=VariableDeclarator): 
+                                                    initializer(Type=MethodCallExpr): 
+                                                        name(Type=SimpleName): 
+                                                            identifier: "initiateFlow"
+                                                        arguments: 
+                                                            - argument(Type=NameExpr): 
+                                                                name(Type=SimpleName): 
+                                                                    identifier: "lender"
+                                                    name(Type=SimpleName): 
+                                                        identifier: "lenderFlow"
+                                                    type(Type=ClassOrInterfaceType): 
+                                                        name(Type=SimpleName): 
+                                                            identifier: "FlowSession"
+                                    - statement(Type=ExpressionStmt): 
+                                        expression(Type=VariableDeclarationExpr): 
+                                            modifiers: 
+                                                - modifier(Type=Modifier): 
+                                                    keyword: "FINAL"
+                                            variables: 
+                                                - variable(Type=VariableDeclarator): 
+                                                    initializer(Type=MethodCallExpr): 
+                                                        name(Type=SimpleName): 
+                                                            identifier: "getParticipantKeys"
+                                                        scope(Type=NameExpr): 
+                                                            name(Type=SimpleName): 
+                                                                identifier: "obligation"
+                                                    name(Type=SimpleName): 
+                                                        identifier: "requiredSigners"
+                                                    type(Type=ClassOrInterfaceType): 
+                                                        name(Type=SimpleName): 
+                                                            identifier: "List"
+                                                        typeArguments: 
+                                                            - typeArgument(Type=ClassOrInterfaceType): 
+                                                                name(Type=SimpleName): 
+                                                                    identifier: "PublicKey"
+                                    - statement(Type=ExpressionStmt): 
+                                        expression(Type=MethodCallExpr): 
+                                            name(Type=SimpleName): 
+                                                identifier: "setCurrentStep"
+                                            scope(Type=NameExpr): 
+                                                name(Type=SimpleName): 
+                                                    identifier: "progressTracker"
+                                            arguments: 
+                                                - argument(Type=NameExpr): 
+                                                    name(Type=SimpleName): 
+                                                        identifier: "BUILDING"
+                                        comment(Type=LineComment): 
+                                            content: " Step 2. Building."
+                                    - statement(Type=ExpressionStmt): 
+                                        expression(Type=VariableDeclarationExpr): 
+                                            modifiers: 
+                                                - modifier(Type=Modifier): 
+                                                    keyword: "FINAL"
+                                            variables: 
+                                                - variable(Type=VariableDeclarator): 
+                                                    initializer(Type=MethodCallExpr): 
+                                                        name(Type=SimpleName): 
+                                                            identifier: "setTimeWindow"
+                                                        scope(Type=MethodCallExpr): 
+                                                            name(Type=SimpleName): 
+                                                                identifier: "addCommand"
+                                                            scope(Type=MethodCallExpr): 
+                                                                name(Type=SimpleName): 
+                                                                    identifier: "addOutputState"
+                                                                scope(Type=ObjectCreationExpr): 
+                                                                    type(Type=ClassOrInterfaceType): 
+                                                                        name(Type=SimpleName): 
+                                                                            identifier: "TransactionBuilder"
+                                                                    arguments: 
+                                                                        - argument(Type=MethodCallExpr): 
+                                                                            name(Type=SimpleName): 
+                                                                                identifier: "getFirstNotary"
+                                                                arguments: 
+                                                                    - argument(Type=NameExpr): 
+                                                                        name(Type=SimpleName): 
+                                                                            identifier: "obligation"
+                                                                    - argument(Type=FieldAccessExpr): 
+                                                                        name(Type=SimpleName): 
+                                                                            identifier: "ID"
+                                                                        scope(Type=NameExpr): 
+                                                                            name(Type=SimpleName): 
+                                                                                identifier: "IOUContract"
+                                                            arguments: 
+                                                                - argument(Type=ObjectCreationExpr): 
+                                                                    type(Type=ClassOrInterfaceType): 
+                                                                        name(Type=SimpleName): 
+                                                                            identifier: "Issue"
+                                                                        scope(Type=ClassOrInterfaceType): 
+                                                                            name(Type=SimpleName): 
+                                                                                identifier: "Commands"
+                                                                            scope(Type=ClassOrInterfaceType): 
+                                                                                name(Type=SimpleName): 
+                                                                                    identifier: "IOUContract"
+                                                                - argument(Type=NameExpr): 
+                                                                    name(Type=SimpleName): 
+                                                                        identifier: "requiredSigners"
+                                                        arguments: 
+                                                            - argument(Type=MethodCallExpr): 
+                                                                name(Type=SimpleName): 
+                                                                    identifier: "instant"
+                                                                scope(Type=MethodCallExpr): 
+                                                                    name(Type=SimpleName): 
+                                                                        identifier: "getClock"
+                                                                    scope(Type=MethodCallExpr): 
+                                                                        name(Type=SimpleName): 
+                                                                            identifier: "getServiceHub"
+                                                            - argument(Type=MethodCallExpr): 
+                                                                name(Type=SimpleName): 
+                                                                    identifier: "ofMinutes"
+                                                                scope(Type=NameExpr): 
+                                                                    name(Type=SimpleName): 
+                                                                        identifier: "Duration"
+                                                                arguments: 
+                                                                    - argument(Type=IntegerLiteralExpr): 
+                                                                        value: "5"
+                                                    name(Type=SimpleName): 
+                                                        identifier: "utx"
+                                                    type(Type=ClassOrInterfaceType): 
+                                                        name(Type=SimpleName): 
+                                                            identifier: "TransactionBuilder"
+                                    - statement(Type=ExpressionStmt): 
+                                        expression(Type=MethodCallExpr): 
+                                            name(Type=SimpleName): 
+                                                identifier: "setCurrentStep"
+                                            scope(Type=NameExpr): 
+                                                name(Type=SimpleName): 
+                                                    identifier: "progressTracker"
+                                            arguments: 
+                                                - argument(Type=NameExpr): 
+                                                    name(Type=SimpleName): 
+                                                        identifier: "SIGNING"
+                                        comment(Type=LineComment): 
+                                            content: " Step 3. Sign the transaction."
+                                    - statement(Type=ExpressionStmt): 
+                                        expression(Type=MethodCallExpr): 
+                                            name(Type=SimpleName): 
+                                                identifier: "verify"
+                                            scope(Type=NameExpr): 
+                                                name(Type=SimpleName): 
+                                                    identifier: "utx"
+                                            arguments: 
+                                                - argument(Type=MethodCallExpr): 
+                                                    name(Type=SimpleName): 
+                                                        identifier: "getServiceHub"
+                                    - statement(Type=ExpressionStmt): 
+                                        expression(Type=VariableDeclarationExpr): 
+                                            modifiers: 
+                                                - modifier(Type=Modifier): 
+                                                    keyword: "FINAL"
+                                            variables: 
+                                                - variable(Type=VariableDeclarator): 
+                                                    initializer(Type=MethodCallExpr): 
+                                                        name(Type=SimpleName): 
+                                                            identifier: "signInitialTransaction"
+                                                        scope(Type=MethodCallExpr): 
+                                                            name(Type=SimpleName): 
+                                                                identifier: "getServiceHub"
+                                                        arguments: 
+                                                            - argument(Type=NameExpr): 
+                                                                name(Type=SimpleName): 
+                                                                    identifier: "utx"
+                                                            - argument(Type=NameExpr): 
+                                                                name(Type=SimpleName): 
+                                                                    identifier: "ourSigningKey"
+                                                    name(Type=SimpleName): 
+                                                        identifier: "ptx"
+                                                    type(Type=ClassOrInterfaceType): 
+                                                        name(Type=SimpleName): 
+                                                            identifier: "SignedTransaction"
+                                    - statement(Type=ExpressionStmt): 
+                                        expression(Type=MethodCallExpr): 
+                                            name(Type=SimpleName): 
+                                                identifier: "setCurrentStep"
+                                            scope(Type=NameExpr): 
+                                                name(Type=SimpleName): 
+                                                    identifier: "progressTracker"
+                                            arguments: 
+                                                - argument(Type=NameExpr): 
+                                                    name(Type=SimpleName): 
+                                                        identifier: "COLLECTING"
+                                        comment(Type=LineComment): 
+                                            content: " Step 4. Get the counter-party signature."
+                                    - statement(Type=ExpressionStmt): 
+                                        expression(Type=VariableDeclarationExpr): 
+                                            modifiers: 
+                                                - modifier(Type=Modifier): 
+                                                    keyword: "FINAL"
+                                            variables: 
+                                                - variable(Type=VariableDeclarator): 
+                                                    initializer(Type=MethodCallExpr): 
+                                                        name(Type=SimpleName): 
+                                                            identifier: "of"
+                                                        scope(Type=NameExpr): 
+                                                            name(Type=SimpleName): 
+                                                                identifier: "ImmutableSet"
+                                                        arguments: 
+                                                            - argument(Type=NameExpr): 
+                                                                name(Type=SimpleName): 
+                                                                    identifier: "lenderFlow"
+                                                    name(Type=SimpleName): 
+                                                        identifier: "sessions"
+                                                    type(Type=ClassOrInterfaceType): 
+                                                        name(Type=SimpleName): 
+                                                            identifier: "ImmutableSet"
+                                                        typeArguments: 
+                                                            - typeArgument(Type=ClassOrInterfaceType): 
+                                                                name(Type=SimpleName): 
+                                                                    identifier: "FlowSession"
+                                    - statement(Type=ExpressionStmt): 
+                                        expression(Type=VariableDeclarationExpr): 
+                                            modifiers: 
+                                                - modifier(Type=Modifier): 
+                                                    keyword: "FINAL"
+                                            variables: 
+                                                - variable(Type=VariableDeclarator): 
+                                                    initializer(Type=MethodCallExpr): 
+                                                        name(Type=SimpleName): 
+                                                            identifier: "subFlow"
+                                                        arguments: 
+                                                            - argument(Type=ObjectCreationExpr): 
+                                                                type(Type=ClassOrInterfaceType): 
+                                                                    name(Type=SimpleName): 
+                                                                        identifier: "CollectSignaturesFlow"
+                                                                arguments: 
+                                                                    - argument(Type=NameExpr): 
+                                                                        name(Type=SimpleName): 
+                                                                            identifier: "ptx"
+                                                                    - argument(Type=NameExpr): 
+                                                                        name(Type=SimpleName): 
+                                                                            identifier: "sessions"
+                                                                    - argument(Type=MethodCallExpr): 
+                                                                        name(Type=SimpleName): 
+                                                                            identifier: "of"
+                                                                        scope(Type=NameExpr): 
+                                                                            name(Type=SimpleName): 
+                                                                                identifier: "ImmutableList"
+                                                                        arguments: 
+                                                                            - argument(Type=NameExpr): 
+                                                                                name(Type=SimpleName): 
+                                                                                    identifier: "ourSigningKey"
+                                                                    - argument(Type=MethodCallExpr): 
+                                                                        name(Type=SimpleName): 
+                                                                            identifier: "childProgressTracker"
+                                                                        scope(Type=NameExpr): 
+                                                                            name(Type=SimpleName): 
+                                                                                identifier: "COLLECTING"
+                                                    name(Type=SimpleName): 
+                                                        identifier: "stx"
+                                                    type(Type=ClassOrInterfaceType): 
+                                                        name(Type=SimpleName): 
+                                                            identifier: "SignedTransaction"
+                                    - statement(Type=ExpressionStmt): 
+                                        expression(Type=MethodCallExpr): 
+                                            name(Type=SimpleName): 
+                                                identifier: "setCurrentStep"
+                                            scope(Type=NameExpr): 
+                                                name(Type=SimpleName): 
+                                                    identifier: "progressTracker"
+                                            arguments: 
+                                                - argument(Type=NameExpr): 
+                                                    name(Type=SimpleName): 
+                                                        identifier: "FINALISING"
+                                        comment(Type=LineComment): 
+                                            content: " Step 5. Finalise the transaction."
+                                    - statement(Type=ReturnStmt): 
+                                        expression(Type=MethodCallExpr): 
+                                            name(Type=SimpleName): 
+                                                identifier: "subFlow"
+                                            arguments: 
+                                                - argument(Type=ObjectCreationExpr): 
+                                                    type(Type=ClassOrInterfaceType): 
+                                                        name(Type=SimpleName): 
+                                                            identifier: "FinalityFlow"
+                                                    arguments: 
+                                                        - argument(Type=NameExpr): 
+                                                            name(Type=SimpleName): 
+                                                                identifier: "stx"
+                                                        - argument(Type=NameExpr): 
+                                                            name(Type=SimpleName): 
+                                                                identifier: "sessions"
+                                                        - argument(Type=MethodCallExpr): 
+                                                            name(Type=SimpleName): 
+                                                                identifier: "childProgressTracker"
+                                                            scope(Type=NameExpr): 
+                                                                name(Type=SimpleName): 
+                                                                    identifier: "FINALISING"
+                            type(Type=ClassOrInterfaceType): 
+                                name(Type=SimpleName): 
+                                    identifier: "SignedTransaction"
+                            name(Type=SimpleName): 
+                                identifier: "call"
+                            modifiers: 
+                                - modifier(Type=Modifier): 
+                                    keyword: "PUBLIC"
+                            thrownExceptions: 
+                                - thrownException(Type=ClassOrInterfaceType): 
+                                    name(Type=SimpleName): 
+                                        identifier: "FlowException"
+                            annotations: 
+                                - annotation(Type=MarkerAnnotationExpr): 
+                                    name(Type=Name): 
+                                        identifier: "Suspendable"
+                                - annotation(Type=MarkerAnnotationExpr): 
+                                    name(Type=Name): 
+                                        identifier: "Override"
+                    modifiers: 
+                        - modifier(Type=Modifier): 
+                            keyword: "PUBLIC"
+                        - modifier(Type=Modifier): 
+                            keyword: "STATIC"
+                    annotations: 
+                        - annotation(Type=MarkerAnnotationExpr): 
+                            name(Type=Name): 
+                                identifier: "InitiatingFlow"
+                        - annotation(Type=MarkerAnnotationExpr): 
+                            name(Type=Name): 
+                                identifier: "StartableByRPC"
+                - member(Type=ClassOrInterfaceDeclaration): 
+                    isInterface: "false"
+                    name(Type=SimpleName): 
+                        identifier: "Responder"
+                    extendedTypes: 
+                        - extendedType(Type=ClassOrInterfaceType): 
+                            name(Type=SimpleName): 
+                                identifier: "FlowLogic"
+                            typeArguments: 
+                                - typeArgument(Type=ClassOrInterfaceType): 
+                                    name(Type=SimpleName): 
+                                        identifier: "SignedTransaction"
+                    members: 
+                        - member(Type=FieldDeclaration): 
+                            modifiers: 
+                                - modifier(Type=Modifier): 
+                                    keyword: "PRIVATE"
+                                - modifier(Type=Modifier): 
+                                    keyword: "FINAL"
+                            variables: 
+                                - variable(Type=VariableDeclarator): 
+                                    name(Type=SimpleName): 
+                                        identifier: "otherFlow"
+                                    type(Type=ClassOrInterfaceType): 
+                                        name(Type=SimpleName): 
+                                            identifier: "FlowSession"
+                        - member(Type=ConstructorDeclaration): 
+                            body(Type=BlockStmt): 
+                                statements: 
+                                    - statement(Type=ExpressionStmt): 
+                                        expression(Type=AssignExpr): 
+                                            operator: "ASSIGN"
+                                            target(Type=FieldAccessExpr): 
+                                                name(Type=SimpleName): 
+                                                    identifier: "otherFlow"
+                                                scope(Type=ThisExpr): 
+                                            value(Type=NameExpr): 
+                                                name(Type=SimpleName): 
+                                                    identifier: "otherFlow"
+                            name(Type=SimpleName): 
+                                identifier: "Responder"
+                            modifiers: 
+                                - modifier(Type=Modifier): 
+                                    keyword: "PUBLIC"
+                            parameters: 
+                                - parameter(Type=Parameter): 
+                                    isVarArgs: "false"
+                                    name(Type=SimpleName): 
+                                        identifier: "otherFlow"
+                                    type(Type=ClassOrInterfaceType): 
+                                        name(Type=SimpleName): 
+                                            identifier: "FlowSession"
+                        - member(Type=MethodDeclaration): 
+                            body(Type=BlockStmt): 
+                                statements: 
+                                    - statement(Type=ExpressionStmt): 
+                                        expression(Type=VariableDeclarationExpr): 
+                                            modifiers: 
+                                                - modifier(Type=Modifier): 
+                                                    keyword: "FINAL"
+                                            variables: 
+                                                - variable(Type=VariableDeclarator): 
+                                                    initializer(Type=MethodCallExpr): 
+                                                        name(Type=SimpleName): 
+                                                            identifier: "subFlow"
+                                                        arguments: 
+                                                            - argument(Type=ObjectCreationExpr): 
+                                                                type(Type=ClassOrInterfaceType): 
+                                                                    name(Type=SimpleName): 
+                                                                        identifier: "SignTxFlowNoChecking"
+                                                                    scope(Type=ClassOrInterfaceType): 
+                                                                        name(Type=SimpleName): 
+                                                                            identifier: "IOUBaseFlow"
+                                                                arguments: 
+                                                                    - argument(Type=NameExpr): 
+                                                                        name(Type=SimpleName): 
+                                                                            identifier: "otherFlow"
+                                                                    - argument(Type=MethodCallExpr): 
+                                                                        name(Type=SimpleName): 
+                                                                            identifier: "tracker"
+                                                                        scope(Type=FieldAccessExpr): 
+                                                                            name(Type=SimpleName): 
+                                                                                identifier: "Companion"
+                                                                            scope(Type=NameExpr): 
+                                                                                name(Type=SimpleName): 
+                                                                                    identifier: "SignTransactionFlow"
+                                                    name(Type=SimpleName): 
+                                                        identifier: "stx"
+                                                    type(Type=ClassOrInterfaceType): 
+                                                        name(Type=SimpleName): 
+                                                            identifier: "SignedTransaction"
+                                    - statement(Type=ReturnStmt): 
+                                        expression(Type=MethodCallExpr): 
+                                            name(Type=SimpleName): 
+                                                identifier: "subFlow"
+                                            arguments: 
+                                                - argument(Type=ObjectCreationExpr): 
+                                                    type(Type=ClassOrInterfaceType): 
+                                                        name(Type=SimpleName): 
+                                                            identifier: "ReceiveFinalityFlow"
+                                                    arguments: 
+                                                        - argument(Type=NameExpr): 
+                                                            name(Type=SimpleName): 
+                                                                identifier: "otherFlow"
+                                                        - argument(Type=MethodCallExpr): 
+                                                            name(Type=SimpleName): 
+                                                                identifier: "getId"
+                                                            scope(Type=NameExpr): 
+                                                                name(Type=SimpleName): 
+                                                                    identifier: "stx"
+                            type(Type=ClassOrInterfaceType): 
+                                name(Type=SimpleName): 
+                                    identifier: "SignedTransaction"
+                            name(Type=SimpleName): 
+                                identifier: "call"
+                            modifiers: 
+                                - modifier(Type=Modifier): 
+                                    keyword: "PUBLIC"
+                            thrownExceptions: 
+                                - thrownException(Type=ClassOrInterfaceType): 
+                                    name(Type=SimpleName): 
+                                        identifier: "FlowException"
+                            annotations: 
+                                - annotation(Type=MarkerAnnotationExpr): 
+                                    name(Type=Name): 
+                                        identifier: "Suspendable"
+                                - annotation(Type=MarkerAnnotationExpr): 
+                                    name(Type=Name): 
+                                        identifier: "Override"
+                    modifiers: 
+                        - modifier(Type=Modifier): 
+                            keyword: "PUBLIC"
+                        - modifier(Type=Modifier): 
+                            keyword: "STATIC"
+                    annotations: 
+                        - annotation(Type=SingleMemberAnnotationExpr): 
+                            memberValue(Type=ClassExpr): 
+                                type(Type=ClassOrInterfaceType): 
+                                    name(Type=SimpleName): 
+                                        identifier: "Initiator"
+                            name(Type=Name): 
+                                identifier: "InitiatedBy"
+            modifiers: 
+                - modifier(Type=Modifier): 
+                    keyword: "PUBLIC"
+...

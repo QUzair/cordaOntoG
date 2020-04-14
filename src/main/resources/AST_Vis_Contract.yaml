@@ -5,6 +5,19 @@ root(Type=CompilationUnit):
             identifier: "templates"
     imports: 
         - import(Type=ImportDeclaration): 
+            isAsterisk: "false"
+            isStatic: "false"
+            name(Type=Name): 
+                identifier: "Sets"
+                qualifier(Type=Name): 
+                    identifier: "collect"
+                    qualifier(Type=Name): 
+                        identifier: "common"
+                        qualifier(Type=Name): 
+                            identifier: "google"
+                            qualifier(Type=Name): 
+                                identifier: "com"
+        - import(Type=ImportDeclaration): 
             isAsterisk: "true"
             isStatic: "false"
             name(Type=Name): 
@@ -63,15 +76,6 @@ root(Type=CompilationUnit):
                 identifier: "PublicKey"
                 qualifier(Type=Name): 
                     identifier: "security"
-                    qualifier(Type=Name): 
-                        identifier: "java"
-        - import(Type=ImportDeclaration): 
-            isAsterisk: "false"
-            isStatic: "false"
-            name(Type=Name): 
-                identifier: "Currency"
-                qualifier(Type=Name): 
-                    identifier: "util"
                     qualifier(Type=Name): 
                         identifier: "java"
         - import(Type=ImportDeclaration): 
@@ -609,20 +613,22 @@ root(Type=CompilationUnit):
                                                             arguments: 
                                                                 - argument(Type=StringLiteralExpr): 
                                                                     value: "The lender and borrower cannot be the same identity."
-                                                                - argument(Type=BinaryExpr): 
-                                                                    operator: "NOT_EQUALS"
-                                                                    left(Type=MethodCallExpr): 
+                                                                - argument(Type=MethodCallExpr): 
+                                                                    name(Type=SimpleName): 
+                                                                        identifier: "equals"
+                                                                    scope(Type=MethodCallExpr): 
                                                                         name(Type=SimpleName): 
                                                                             identifier: "getBorrower"
                                                                         scope(Type=NameExpr): 
                                                                             name(Type=SimpleName): 
                                                                                 identifier: "obligation"
-                                                                    right(Type=MethodCallExpr): 
-                                                                        name(Type=SimpleName): 
-                                                                            identifier: "getLender"
-                                                                        scope(Type=NameExpr): 
+                                                                    arguments: 
+                                                                        - argument(Type=MethodCallExpr): 
                                                                             name(Type=SimpleName): 
-                                                                                identifier: "obligation"
+                                                                                identifier: "getLender"
+                                                                            scope(Type=NameExpr): 
+                                                                                name(Type=SimpleName): 
+                                                                                    identifier: "obligation"
                                                     - statement(Type=ExpressionStmt): 
                                                         expression(Type=MethodCallExpr): 
                                                             name(Type=SimpleName): 
@@ -658,8 +664,210 @@ root(Type=CompilationUnit):
                     type(Type=VoidType): 
                     name(Type=SimpleName): 
                         identifier: "verifyIssue"
-                    comment(Type=LineComment): 
-                        content: " This only allows one obligation issuance per transaction."
+                    modifiers: 
+                        - modifier(Type=Modifier): 
+                            keyword: "PRIVATE"
+                    parameters: 
+                        - parameter(Type=Parameter): 
+                            isVarArgs: "false"
+                            name(Type=SimpleName): 
+                                identifier: "tx"
+                            type(Type=ClassOrInterfaceType): 
+                                name(Type=SimpleName): 
+                                    identifier: "LedgerTransaction"
+                        - parameter(Type=Parameter): 
+                            isVarArgs: "false"
+                            name(Type=SimpleName): 
+                                identifier: "signers"
+                            type(Type=ClassOrInterfaceType): 
+                                name(Type=SimpleName): 
+                                    identifier: "Set"
+                                typeArguments: 
+                                    - typeArgument(Type=ClassOrInterfaceType): 
+                                        name(Type=SimpleName): 
+                                            identifier: "PublicKey"
+                - member(Type=MethodDeclaration): 
+                    body(Type=BlockStmt): 
+                        statements: 
+                            - statement(Type=ExpressionStmt): 
+                                expression(Type=MethodCallExpr): 
+                                    name(Type=SimpleName): 
+                                        identifier: "requireThat"
+                                    arguments: 
+                                        - argument(Type=LambdaExpr): 
+                                            isEnclosingParameters: "false"
+                                            body(Type=BlockStmt): 
+                                                statements: 
+                                                    - statement(Type=ExpressionStmt): 
+                                                        expression(Type=VariableDeclarationExpr): 
+                                                            variables: 
+                                                                - variable(Type=VariableDeclarator): 
+                                                                    initializer(Type=CastExpr): 
+                                                                        expression(Type=MethodCallExpr): 
+                                                                            name(Type=SimpleName): 
+                                                                                identifier: "get"
+                                                                            scope(Type=MethodCallExpr): 
+                                                                                name(Type=SimpleName): 
+                                                                                    identifier: "getInputStates"
+                                                                                scope(Type=NameExpr): 
+                                                                                    name(Type=SimpleName): 
+                                                                                        identifier: "tx"
+                                                                            arguments: 
+                                                                                - argument(Type=IntegerLiteralExpr): 
+                                                                                    value: "0"
+                                                                        type(Type=ClassOrInterfaceType): 
+                                                                            name(Type=SimpleName): 
+                                                                                identifier: "IOUState"
+                                                                    name(Type=SimpleName): 
+                                                                        identifier: "inputObligation"
+                                                                    type(Type=ClassOrInterfaceType): 
+                                                                        name(Type=SimpleName): 
+                                                                            identifier: "IOUState"
+                                                    - statement(Type=ExpressionStmt): 
+                                                        expression(Type=VariableDeclarationExpr): 
+                                                            variables: 
+                                                                - variable(Type=VariableDeclarator): 
+                                                                    initializer(Type=CastExpr): 
+                                                                        expression(Type=MethodCallExpr): 
+                                                                            name(Type=SimpleName): 
+                                                                                identifier: "get"
+                                                                            scope(Type=MethodCallExpr): 
+                                                                                name(Type=SimpleName): 
+                                                                                    identifier: "getOutputStates"
+                                                                                scope(Type=NameExpr): 
+                                                                                    name(Type=SimpleName): 
+                                                                                        identifier: "tx"
+                                                                            arguments: 
+                                                                                - argument(Type=IntegerLiteralExpr): 
+                                                                                    value: "0"
+                                                                        type(Type=ClassOrInterfaceType): 
+                                                                            name(Type=SimpleName): 
+                                                                                identifier: "IOUState"
+                                                                    name(Type=SimpleName): 
+                                                                        identifier: "outputObligation"
+                                                                    type(Type=ClassOrInterfaceType): 
+                                                                        name(Type=SimpleName): 
+                                                                            identifier: "IOUState"
+                                                    - statement(Type=ExpressionStmt): 
+                                                        expression(Type=MethodCallExpr): 
+                                                            name(Type=SimpleName): 
+                                                                identifier: "using"
+                                                            scope(Type=NameExpr): 
+                                                                name(Type=SimpleName): 
+                                                                    identifier: "req"
+                                                            arguments: 
+                                                                - argument(Type=StringLiteralExpr): 
+                                                                    value: "An obligation transfer transaction should only consume one input state."
+                                                                - argument(Type=BinaryExpr): 
+                                                                    operator: "EQUALS"
+                                                                    left(Type=MethodCallExpr): 
+                                                                        name(Type=SimpleName): 
+                                                                            identifier: "size"
+                                                                        scope(Type=MethodCallExpr): 
+                                                                            name(Type=SimpleName): 
+                                                                                identifier: "getInputs"
+                                                                            scope(Type=NameExpr): 
+                                                                                name(Type=SimpleName): 
+                                                                                    identifier: "tx"
+                                                                    right(Type=IntegerLiteralExpr): 
+                                                                        value: "1"
+                                                    - statement(Type=ExpressionStmt): 
+                                                        expression(Type=MethodCallExpr): 
+                                                            name(Type=SimpleName): 
+                                                                identifier: "using"
+                                                            scope(Type=NameExpr): 
+                                                                name(Type=SimpleName): 
+                                                                    identifier: "req"
+                                                            arguments: 
+                                                                - argument(Type=StringLiteralExpr): 
+                                                                    value: "An obligation transfer transaction should only create one output state."
+                                                                - argument(Type=BinaryExpr): 
+                                                                    operator: "EQUALS"
+                                                                    left(Type=MethodCallExpr): 
+                                                                        name(Type=SimpleName): 
+                                                                            identifier: "size"
+                                                                        scope(Type=MethodCallExpr): 
+                                                                            name(Type=SimpleName): 
+                                                                                identifier: "getOutputs"
+                                                                            scope(Type=NameExpr): 
+                                                                                name(Type=SimpleName): 
+                                                                                    identifier: "tx"
+                                                                    right(Type=IntegerLiteralExpr): 
+                                                                        value: "1"
+                                                    - statement(Type=ExpressionStmt): 
+                                                        expression(Type=MethodCallExpr): 
+                                                            name(Type=SimpleName): 
+                                                                identifier: "using"
+                                                            scope(Type=NameExpr): 
+                                                                name(Type=SimpleName): 
+                                                                    identifier: "req"
+                                                            arguments: 
+                                                                - argument(Type=StringLiteralExpr): 
+                                                                    value: "The lender property must change in a transfer."
+                                                                - argument(Type=BinaryExpr): 
+                                                                    operator: "NOT_EQUALS"
+                                                                    left(Type=MethodCallExpr): 
+                                                                        name(Type=SimpleName): 
+                                                                            identifier: "getLender"
+                                                                        scope(Type=NameExpr): 
+                                                                            name(Type=SimpleName): 
+                                                                                identifier: "inputObligation"
+                                                                    right(Type=EnclosedExpr): 
+                                                                        inner(Type=MethodCallExpr): 
+                                                                            name(Type=SimpleName): 
+                                                                                identifier: "getLender"
+                                                                            scope(Type=NameExpr): 
+                                                                                name(Type=SimpleName): 
+                                                                                    identifier: "outputObligation"
+                                                    - statement(Type=ExpressionStmt): 
+                                                        expression(Type=MethodCallExpr): 
+                                                            name(Type=SimpleName): 
+                                                                identifier: "using"
+                                                            scope(Type=NameExpr): 
+                                                                name(Type=SimpleName): 
+                                                                    identifier: "req"
+                                                            arguments: 
+                                                                - argument(Type=StringLiteralExpr): 
+                                                                    value: "The borrower, old lender and new lender only must sign an obligation transfer transaction"
+                                                                - argument(Type=MethodCallExpr): 
+                                                                    name(Type=SimpleName): 
+                                                                        identifier: "equals"
+                                                                    scope(Type=NameExpr): 
+                                                                        name(Type=SimpleName): 
+                                                                            identifier: "signers"
+                                                                    arguments: 
+                                                                        - argument(Type=MethodCallExpr): 
+                                                                            name(Type=SimpleName): 
+                                                                                identifier: "union"
+                                                                            scope(Type=NameExpr): 
+                                                                                name(Type=SimpleName): 
+                                                                                    identifier: "Sets"
+                                                                            arguments: 
+                                                                                - argument(Type=MethodCallExpr): 
+                                                                                    name(Type=SimpleName): 
+                                                                                        identifier: "keysFromParticipants"
+                                                                                    arguments: 
+                                                                                        - argument(Type=NameExpr): 
+                                                                                            name(Type=SimpleName): 
+                                                                                                identifier: "inputObligation"
+                                                                                - argument(Type=MethodCallExpr): 
+                                                                                    name(Type=SimpleName): 
+                                                                                        identifier: "keysFromParticipants"
+                                                                                    arguments: 
+                                                                                        - argument(Type=NameExpr): 
+                                                                                            name(Type=SimpleName): 
+                                                                                                identifier: "outputObligation"
+                                                    - statement(Type=ReturnStmt): 
+                                                        expression(Type=NullLiteralExpr): 
+                                            parameters: 
+                                                - parameter(Type=Parameter): 
+                                                    isVarArgs: "false"
+                                                    name(Type=SimpleName): 
+                                                        identifier: "req"
+                                                    type(Type=UnknownType): 
+                    type(Type=VoidType): 
+                    name(Type=SimpleName): 
+                        identifier: "verifyTransfer"
                     modifiers: 
                         - modifier(Type=Modifier): 
                             keyword: "PRIVATE"
@@ -746,17 +954,49 @@ root(Type=CompilationUnit):
                                                         expression(Type=VariableDeclarationExpr): 
                                                             variables: 
                                                                 - variable(Type=VariableDeclarator): 
-                                                                    initializer(Type=MethodCallExpr): 
-                                                                        name(Type=SimpleName): 
-                                                                            identifier: "get"
-                                                                        scope(Type=NameExpr): 
+                                                                    initializer(Type=CastExpr): 
+                                                                        expression(Type=MethodCallExpr): 
                                                                             name(Type=SimpleName): 
-                                                                                identifier: "obligationInputs"
-                                                                        arguments: 
-                                                                            - argument(Type=IntegerLiteralExpr): 
-                                                                                value: "0"
+                                                                                identifier: "get"
+                                                                            scope(Type=MethodCallExpr): 
+                                                                                name(Type=SimpleName): 
+                                                                                    identifier: "getInputStates"
+                                                                                scope(Type=NameExpr): 
+                                                                                    name(Type=SimpleName): 
+                                                                                        identifier: "tx"
+                                                                            arguments: 
+                                                                                - argument(Type=IntegerLiteralExpr): 
+                                                                                    value: "0"
+                                                                        type(Type=ClassOrInterfaceType): 
+                                                                            name(Type=SimpleName): 
+                                                                                identifier: "IOUState"
                                                                     name(Type=SimpleName): 
                                                                         identifier: "inputObligation"
+                                                                    type(Type=ClassOrInterfaceType): 
+                                                                        name(Type=SimpleName): 
+                                                                            identifier: "IOUState"
+                                                    - statement(Type=ExpressionStmt): 
+                                                        expression(Type=VariableDeclarationExpr): 
+                                                            variables: 
+                                                                - variable(Type=VariableDeclarator): 
+                                                                    initializer(Type=CastExpr): 
+                                                                        expression(Type=MethodCallExpr): 
+                                                                            name(Type=SimpleName): 
+                                                                                identifier: "get"
+                                                                            scope(Type=MethodCallExpr): 
+                                                                                name(Type=SimpleName): 
+                                                                                    identifier: "getOutputStates"
+                                                                                scope(Type=NameExpr): 
+                                                                                    name(Type=SimpleName): 
+                                                                                        identifier: "tx"
+                                                                            arguments: 
+                                                                                - argument(Type=IntegerLiteralExpr): 
+                                                                                    value: "0"
+                                                                        type(Type=ClassOrInterfaceType): 
+                                                                            name(Type=SimpleName): 
+                                                                                identifier: "IOUState"
+                                                                    name(Type=SimpleName): 
+                                                                        identifier: "outputObligation"
                                                                     type(Type=ClassOrInterfaceType): 
                                                                         name(Type=SimpleName): 
                                                                             identifier: "IOUState"
@@ -852,30 +1092,6 @@ root(Type=CompilationUnit):
                                                                                     name(Type=SimpleName): 
                                                                                         identifier: "Cash"
                                                     - statement(Type=ExpressionStmt): 
-                                                        expression(Type=VariableDeclarationExpr): 
-                                                            variables: 
-                                                                - variable(Type=VariableDeclarator): 
-                                                                    initializer(Type=MethodCallExpr): 
-                                                                        name(Type=SimpleName): 
-                                                                            identifier: "withoutIssuer"
-                                                                        arguments: 
-                                                                            - argument(Type=MethodCallExpr): 
-                                                                                name(Type=SimpleName): 
-                                                                                    identifier: "sumCash"
-                                                                                arguments: 
-                                                                                    - argument(Type=NameExpr): 
-                                                                                        name(Type=SimpleName): 
-                                                                                            identifier: "acceptableCash"
-                                                                    name(Type=SimpleName): 
-                                                                        identifier: "sumAcceptableCash"
-                                                                    type(Type=ClassOrInterfaceType): 
-                                                                        name(Type=SimpleName): 
-                                                                            identifier: "Amount"
-                                                                        typeArguments: 
-                                                                            - typeArgument(Type=ClassOrInterfaceType): 
-                                                                                name(Type=SimpleName): 
-                                                                                    identifier: "Currency"
-                                                    - statement(Type=ExpressionStmt): 
                                                         expression(Type=MethodCallExpr): 
                                                             name(Type=SimpleName): 
                                                                 identifier: "using"
@@ -943,14 +1159,26 @@ root(Type=CompilationUnit):
                                                             arguments: 
                                                                 - argument(Type=StringLiteralExpr): 
                                                                     value: "The amount settled should be equal to amount in initial contract."
-                                                                - argument(Type=MethodCallExpr): 
-                                                                    name(Type=SimpleName): 
-                                                                        identifier: "equals"
-                                                                    scope(Type=NameExpr): 
+                                                                - argument(Type=BinaryExpr): 
+                                                                    operator: "EQUALS"
+                                                                    left(Type=MethodCallExpr): 
                                                                         name(Type=SimpleName): 
-                                                                            identifier: "sumAcceptableCash"
-                                                                    arguments: 
-                                                                        - argument(Type=MethodCallExpr): 
+                                                                            identifier: "getQuantity"
+                                                                        scope(Type=MethodCallExpr): 
+                                                                            name(Type=SimpleName): 
+                                                                                identifier: "withoutIssuer"
+                                                                            arguments: 
+                                                                                - argument(Type=MethodCallExpr): 
+                                                                                    name(Type=SimpleName): 
+                                                                                        identifier: "sumCash"
+                                                                                    arguments: 
+                                                                                        - argument(Type=NameExpr): 
+                                                                                            name(Type=SimpleName): 
+                                                                                                identifier: "acceptableCash"
+                                                                    right(Type=MethodCallExpr): 
+                                                                        name(Type=SimpleName): 
+                                                                            identifier: "getQuantity"
+                                                                        scope(Type=MethodCallExpr): 
                                                                             name(Type=SimpleName): 
                                                                                 identifier: "getValue"
                                                                             scope(Type=NameExpr): 

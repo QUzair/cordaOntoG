@@ -1,3 +1,4 @@
+import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.*;
@@ -17,6 +18,7 @@ public class ContractCompilation {
 
     public static void main(String[] args) throws Exception {
 
+
         /*
         Requires:
         - ContractName - used to declare ClassName
@@ -28,42 +30,24 @@ public class ContractCompilation {
         - property "value"
         */
         TransactionProperties tx = new TransactionProperties();
+        List<CommandConstraints> commandConstraints = QueryDB.getContractConditionsInitiator();
 
-        MethodCallExpr txInputSize = tx.txInputOutputSize(tx.TX_INPUT);
-        MethodCallExpr txOutputSize = tx.txInputOutputSize(tx.TX_OUTPUT);
-
-        MethodCallExpr stateBorrower = tx.getStateProperty("borrower", "iouState", tx.TX_INPUT);
-        MethodCallExpr stateLender = tx.getStateProperty("lender", "iouState", tx.TX_INPUT);
-        MethodCallExpr stateValue = tx.getStateProperty("value", "iouState", tx.TX_INPUT, true);
 
         //-------------FETCHING----------------------//
 
         //Creating an array of commands from tripleStore
         String packageName = "com.template.IOUContract";
-        List<String> commands = Arrays.asList("Issue", "Transfer");
-//        List<String> commands = JenaQuery.getCommands();
+        List<String> commands = Arrays.asList("Issue", "Settle");
+        //List<String> commands = JenaQuery.getCommands();
         String stateName = "IOUState";
         String contractName = "IOU";
-        List<ContractCondition> descriptions = new ArrayList<ContractCondition>();
-        descriptions.add(new ContractCondition("No inputs should be consumed when issuing an obligation.", txInputSize, BinaryExpr.Operator.EQUALS, new IntegerLiteralExpr("0")));
-        descriptions.add(new ContractCondition("Only one obligation state should be created when issuing an obligation.", txOutputSize, BinaryExpr.Operator.EQUALS, new IntegerLiteralExpr("1")));
-        descriptions.add(new ContractCondition("A newly issued obligation must have a positive amount.", stateValue, BinaryExpr.Operator.GREATER, new IntegerLiteralExpr("0")));
-        descriptions.add(new ContractCondition("The lender and borrower cannot be the same identity.", stateLender, BinaryExpr.Operator.NOT_EQUALS, stateBorrower));
+        List<ContractCondition> descriptions = commandConstraints.get(0).constraints;
+        List<ExpressionStmt> variablesIssue =  commandConstraints.get(0).variables;
 
 
-        List<ContractCondition> descriptionsSettle = new ArrayList<ContractCondition>();
-        descriptionsSettle.add(new ContractCondition("There must be one input obligation.", txInputSize, BinaryExpr.Operator.EQUALS, new IntegerLiteralExpr("1")));
+        List<ContractCondition> descriptionsSettle = commandConstraints.get(1).constraints;
+        List<ExpressionStmt> variablesSettle =  commandConstraints.get(1).variables;
 
-        //Variables necessary for internals Command checks
-        List<ExpressionStmt> variablesIssue = new ArrayList<ExpressionStmt>();
-        variablesIssue.add(tx.singleStateType("IOUState", "output"));
-        variablesIssue.add(tx.singleStateType("IOUState", "input"));
-
-        List<ExpressionStmt> variablesSettle = new ArrayList<ExpressionStmt>();
-        variablesSettle.add(tx.getCashFromOutput());
-        variablesSettle.add(tx.singleStateType("IOUState", "input"));
-        variablesSettle.add(tx.acceptableCashFromPayee("lender", "IOUState"));
-        variablesSettle.add(tx.getSumOfCashBeingSent());
 
         //-------------GENERATING----------------------//
 
@@ -98,21 +82,35 @@ public class ContractCompilation {
     }
 
     public static ExpressionStmt generateConstraintStatements(ContractCondition constraint) {
+        UnaryExpr unaryExpr;
+        BinaryExpr binaryExpr;
+        ExpressionStmt expressionStmt = new ExpressionStmt();
+        MethodCallExpr reqMethod = new MethodCallExpr("using")
+                .setScope(new NameExpr("req"))
+                .addArgument(new StringLiteralExpr(constraint.description));
 
-        return new ExpressionStmt().setExpression(
-                new MethodCallExpr("using")
-                        .setScope(new NameExpr("req"))
-                        .addArgument(new StringLiteralExpr(constraint.description))
-                        .addArgument(
-                                new BinaryExpr()
-                                        .setOperator(constraint.operator)
-                                        .setLeft(
-                                                constraint.left
-                                        )
-                                        .setRight(constraint.right != null ? constraint.right : constraint.rightInt)
-                        )
-        );
+        if(constraint.operator.equals(BinaryExpr.Operator.NOT_EQUALS)) {
+            MethodCallExpr methodCallExpr = StaticJavaParser.parseExpression(String.format("%s.equals(%s)",constraint.right,constraint.left));
+             unaryExpr = new UnaryExpr()
+                    .setOperator(UnaryExpr.Operator.LOGICAL_COMPLEMENT)
+                    .setExpression(methodCallExpr);
+            reqMethod.addArgument(unaryExpr);
+             return expressionStmt.setExpression(reqMethod);
+        } else if(constraint.operator.equals(BinaryExpr.Operator.EQUALS)) {
+            MethodCallExpr methodCallExpr = StaticJavaParser.parseExpression(String.format("%s.equals(%s)",constraint.right,constraint.left));
+            reqMethod.addArgument(methodCallExpr);
+            return expressionStmt.setExpression(reqMethod);
+        } else {
+             binaryExpr = new BinaryExpr()
+                    .setOperator(constraint.operator)
+                    .setLeft(constraint.left)
+                    .setRight(constraint.right != null ? constraint.right :(constraint.rightInt!=null ?constraint.rightInt:constraint.rightStr));
+            reqMethod.addArgument(binaryExpr);
+             return expressionStmt.setExpression(reqMethod);
+        }
     }
+
+
 
     public static ExpressionStmt generateConstraintStatements(ContractCondition constraint, boolean empty) {
         return new ExpressionStmt().setExpression(new MethodCallExpr().setName("using").setScope(new NameExpr("req"))
@@ -133,7 +131,6 @@ public class ContractCompilation {
             lambdaBlockStmt
                     .addStatement(var);
         }
-
 
         for (ContractCondition description : descriptions) {
             lambdaBlockStmt.addStatement(generateConstraintStatements(description));
@@ -293,9 +290,7 @@ public class ContractCompilation {
         for (String command : commands) {
             generateCommands(commCd, command);
         }
-
         cd.addMember(commCd);
-
     }
 
     static void generateCommands(ClassOrInterfaceDeclaration commandsInterface, String CommandType) {
@@ -314,7 +309,6 @@ public class ContractCompilation {
         cd.addField("String", "ID", PRIVATE, FINAL, STATIC).getVariable(0).setInitializer(new StringLiteralExpr(packageName));
         ;
     }
-
 
     static ClassOrInterfaceDeclaration generateContractClass(CompilationUnit cu, String contractName) {
         return cu

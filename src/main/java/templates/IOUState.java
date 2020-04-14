@@ -47,7 +47,6 @@ public class IOUState implements LinearState {
         return getParticipants().stream().map(AbstractParty::getOwningKey).collect(Collectors.toList());
     }
 
-
     @Override
     public String toString() {
         return String.format("IOUState(value=%s, lender=%s, borrower=%s, linearId=%s)", value, lender, borrower, linearId);

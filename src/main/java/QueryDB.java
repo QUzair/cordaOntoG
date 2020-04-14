@@ -1,0 +1,373 @@
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import com.github.javaparser.ast.expr.BinaryExpr;
+import com.github.javaparser.ast.expr.IntegerLiteralExpr;
+import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.expr.StringLiteralExpr;
+import com.github.javaparser.ast.stmt.ExpressionStmt;
+import dataModels.StateAndContract;
+
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+
+import static com.google.common.net.HttpHeaders.USER_AGENT;
+
+public class QueryDB {
+
+    public static String stateNameQuery = "query=PREFIX :<http://cordaO.org/> SELECT ?stateName ?contractName WHERE { \n" +
+            "               ?stateprop a :State ; \n" +
+            "             :stateName ?stateName ;\n" +
+            "            :belongsTo ?cons .\n" +
+            "            ?cons :contractName ?contractName .  \n" +
+            "}";
+
+    public static String statePropertiesQuery = "query=PREFIX :<http://cordaO.org/> SELECT DISTINCT ?stateName ?propertyName ?dataType ?contractClass WHERE {\n" +
+            "    ?state a :State ;\n" +
+            "                :stateName ?stateName ;\n" +
+            "                :hasProperty ?props ;\n" +
+            "                :belongsTo ?cons .\n" +
+            "    ?cons :contractName ?contractClass .       \n" +
+            "    ?props :propertyName ?propertyName ;\n" +
+            "            :datatype ?dataType .  \n" +
+            "}";
+
+    public static String commandsQuery = "query=PREFIX :<http://cordaO.org/> SELECT ?name WHERE {\n" +
+            "    ?command a :Command ;\n" +
+            "        :commandName ?name .\n" +
+            "}";
+
+    public static String appNameQuery = "query=PREFIX :<http://cordaO.org/> SELECT DISTINCT ?appName {\n" +
+            "        ?cdapp a :CordDapp ;\n" +
+            "          :hasName ?appName .\n" +
+            "}";
+
+    public static String flowQuery = "query= PREFIX :<http://cordaO.org/> SELECT DISTINCT ?stateName ?contractName ?flowName ?appName {\n" +
+            "        ?cdapp a :CordDapp ;\n" +
+            "          :hasName ?appName .\n" +
+            "        ?state a :State ;\n" +
+            "                :stateName ?stateName .\n" +
+            "        ?flow a :Flow ;\n" +
+            "               :flowName ?flowName .\n" +
+            "        ?contract a :Contract ;\n" +
+            "                  :contractName ?contractName .    \n" +
+            "}";
+
+    public static String contractConditionsIntegerQuery = "query=PREFIX :<http://cordaO.org/> SELECT ?cons ?left ?bin ?right ?desc ?leftType ?rightType ?lName ?ldatatype ?lstateClass ?commandName {\n" +
+            "    ?c a :Command ;\n" +
+            "            :commandName ?commandName ;\n" +
+            "            :hasConstraint ?cons ." +
+            "\t?cons a :Constraint .\n" +
+            "\t<< ?left ?bin ?right >> :belongsTo  ?cons .\n" +
+            "    ?cons :hasDescription ?desc .\n" +
+            "    ?leftType a :txPropertyType .\n" +
+            "    ?left ?leftType ?leftProp .\n" +
+            "    ?leftProp :propertyName ?lName .\n" +
+            "    ?leftProp :datatype ?ldatatype .\n" +
+            "    OPTIONAL {    \n" +
+            "    ?leftProp ^:hasProperty ?lstate .\n" +
+            "    ?lstate :stateName ?lstateClass .} \n" +
+            "    BIND (datatype(?right) AS ?rightType)\n" +
+            "    FILTER (!regex(str(?right), \"http\"))" +
+            "}";
+
+    public static String contractConditionsQuery = "query=PREFIX :<http://cordaO.org/> SELECT ?cons ?left ?bin ?right ?desc ?leftType ?rightType ?lName ?rName ?ldatatype ?rdatatype ?rstateClass ?lstateClass ?payee ?payeeState ?commandName{\n" +
+            "    ?c a :Command ;\n" +
+            "        :commandName ?commandName ;\n" +
+            "        :hasConstraint ?cons ." +
+            "\t?cons a :Constraint .\n" +
+            "\t<< ?left ?bin ?right >> :belongsTo  ?cons .\n" +
+            "    ?cons :hasDescription ?desc .\n" +
+            "    ?leftType a :txPropertyType .\n" +
+            "    ?rightType a :txPropertyType .\n" +
+            "    ?left ?leftType ?leftProp .\n" +
+            "    ?right ?rightType ?rightProp .\n" +
+            "    ?leftProp :propertyName ?lName .\n" +
+            "    ?rightProp :propertyName ?rName .\n" +
+            "OPTIONAL {    ?rightProp ^:hasProperty ?rstate .\n" +
+            "    ?leftProp ^:hasProperty ?lstate .\n" +
+            "OPTIONAL {    ?leftProp :owner ?payeeProp .\n" +
+            "    ?payeeProp ^:hasProperty ?state .\n" +
+            "    ?state :stateName ?payeeState ." +
+            "    ?payeeProp :propertyName ?payee .}" +
+            "    ?rstate :stateName ?rstateClass . \n" +
+            "    ?lstate :stateName ?lstateClass .} \n" +
+            "    ?leftProp :datatype ?ldatatype .\n" +
+            "    ?rightProp :datatype ?rdatatype .\n" +
+            "}";
+
+
+
+    public static String dbUrl = "http://localhost:5820/iou/query";
+
+    public static void main(String[] args) throws Exception {
+        getStateProperties();
+        getStateName();
+        getContractConditionsInitiator();
+    }
+
+    public static List<String> getCommands() throws IOException {
+        JsonNode jsonNode = createConnection(dbUrl,commandsQuery);
+        List<String> commands = new ArrayList<String>();
+
+        Consumer<JsonNode> data = (JsonNode node) -> {
+            commands.add(node.get("name").get("value").toString().replace("\"",""));
+        };
+        jsonNode.get("results").get("bindings").forEach(data);
+
+        return commands;
+    }
+
+    public static StateAndContract getStateName() throws IOException {
+            StateAndContract stateAndContract = new StateAndContract();
+            JsonNode jsonNode = createConnection(dbUrl,stateNameQuery);
+            Consumer<JsonNode> data = (JsonNode node) -> {
+                stateAndContract.stateName =  node.get("stateName").get("value").toString().replace("\"","");
+                stateAndContract.contractName =  node.get("contractName").get("value").toString().replace("\"","");
+            };
+            jsonNode.get("results").get("bindings").forEach(data);
+            return stateAndContract;
+        }
+
+    public static Map<String, String> getStateProperties() throws IOException {
+            // Return Map Result
+            Map<String, String> fieldsMap = new HashMap<>();
+            fieldsMap.put("linearId","UniqueIdentifier");
+
+            JsonNode jsonNode = createConnection(dbUrl,statePropertiesQuery);
+
+            Consumer<JsonNode> data = (JsonNode node) -> {
+                fieldsMap.put(node.get("propertyName").get("value").toString().replace("\"",""), node.get("dataType").get("value").toString().replace("\"",""));
+            };
+            jsonNode.get("results").get("bindings").forEach(data);
+            return fieldsMap;
+        }
+
+    public static String getAppName() throws IOException {
+
+        JsonNode jsonNode = createConnection(dbUrl,appNameQuery);
+        List<String> appName = new ArrayList<>();
+        Consumer<JsonNode> data = (JsonNode node) -> {
+            appName.add(node.get("appName").get("value").toString().replace("\"",""));
+        };
+        jsonNode.get("results").get("bindings").forEach(data);
+        return appName.get(0);
+    }
+
+        public static  List<CommandConstraints> getContractConditionsInitiator() throws Exception {
+            List<CommandConstraints> commandsWithConstraints = new ArrayList<>();
+
+            List<String> commands = getCommands();
+            for(String command: commands) {
+                commandsWithConstraints.add(new CommandConstraints(command));
+            }
+            getContractConditionsInteger(commandsWithConstraints);
+            getContractConditions(commandsWithConstraints);
+            return commandsWithConstraints;
+        }
+
+
+    public static String getNodeParam(JsonNode node, String param, Boolean removeNamespace) {
+        if (!removeNamespace) {
+            try {
+                return node.get(param).get("value").toString().replace("\"", "");
+            } catch (Exception e) {
+                return "";
+            }
+        } else {
+            try {
+                return node.get(param).get("value").toString().replace("\"", "").replace("http://cordaO.org/", "");
+            } catch (Exception e) {
+                return "";
+            }
+        }
+    }
+
+    public static void getFlow() {
+
+    }
+
+    public static List<CommandConstraints> getContractConditions(List<CommandConstraints> commandsWithConstraints) throws Exception{
+
+        JsonNode jsonNode = createConnection(dbUrl,contractConditionsQuery);
+        TransactionProperties tx = new TransactionProperties();
+
+        Consumer<JsonNode> data = (JsonNode node) -> {
+            MethodCallExpr lstateProp, rstateProp;
+            String ldatatype = getNodeParam(node,"ldatatype",false);
+            String rdatatype =  getNodeParam(node,"rdatatype",false);
+            String lName = getNodeParam(node,"lName",false);
+            String rName = getNodeParam(node,"rName",false);
+            String rstateClass = getNodeParam(node,"rstateClass",false);
+            String lstateClass = getNodeParam(node,"lstateClass",false);
+            String binOperator = getNodeParam(node,"bin",true);
+            String desc = getNodeParam(node,"desc",false);
+            String commandName =getNodeParam(node,"commandName",false);
+            String leftType = getNodeParam(node,"leftType",true);
+            String payee = getNodeParam(node,"payee",false);
+            String payeeState = getNodeParam(node,"payeeState",false);
+            String rightType = getNodeParam(node,"rightType",true);
+            String ltxType = "";
+            String rtxType = "";
+            ContractCondition contractCondition;
+            BinaryExpr.Operator operator = getOperator(binOperator);
+
+            ltxType = leftType.contains("Input") ? tx.TX_INPUT:tx.TX_OUTPUT;
+            rtxType = rightType.contains("Input") ? tx.TX_INPUT:tx.TX_OUTPUT;
+            try {
+                lstateProp = (lName.equals("AcceptableCash")) ? tx.getAcceptableCashQuantity(): tx.getStateProperty(lName, lstateClass,ltxType, ldatatype.contains("Amount<Currency>")?true:false);
+                rstateProp = tx.getStateProperty(rName, rstateClass,rtxType, rdatatype.contains("Amount<Currency>")?true:false);
+            } catch (Exception e) {
+                lstateProp = null;
+                rstateProp = null;
+                e.printStackTrace();
+            }
+
+            if(lstateProp!=null && rstateProp!=null){
+                contractCondition = new ContractCondition(desc,lstateProp,operator,rstateProp);
+                for (int i = 0; i < commandsWithConstraints.size(); i++) {
+                    if(commandsWithConstraints.get(i).commandName.equals(commandName)) {
+                        commandsWithConstraints.get(i).constraints.add(contractCondition);
+                        if(lName.contains("Cash")) {
+                            commandsWithConstraints.get(i).variables.add(tx.getCashFromOutput());
+                            commandsWithConstraints.get(i).variables.add(tx.acceptableCashFromPayee( payee, payeeState));
+                        }
+                        if(!lName.contains("Cash")) commandsWithConstraints.get(i).variables.add(tx.singleStateType(lstateClass, ltxType));
+                    }
+                }
+            }
+        };
+
+        jsonNode.get("results").get("bindings").forEach(data);
+        List<ExpressionStmt> listWithoutDuplicates;
+        for (int i = 0; i < commandsWithConstraints.size(); i++) {
+            listWithoutDuplicates = commandsWithConstraints.get(i).variables.stream().distinct().collect(Collectors.toList());
+            commandsWithConstraints.get(i).variables = listWithoutDuplicates;
+        }
+        return commandsWithConstraints;
+    }
+
+
+        public static List<CommandConstraints> getContractConditionsInteger(List<CommandConstraints> commandsWithConstraints) throws Exception{
+
+            JsonNode jsonNode = createConnection(dbUrl,contractConditionsIntegerQuery);
+            TransactionProperties tx = new TransactionProperties();
+
+
+            Consumer<JsonNode> data = (JsonNode node) -> {
+                MethodCallExpr stateProp = new MethodCallExpr();;
+                String ldatatype = node.get("ldatatype").get("value").toString().replace("\"","");
+                String lName = node.get("lName").get("value").toString().replace("\"","");
+                String left = node.get("left").get("value").toString().replace("\"","").replace("http://cordaO.org/","");
+                String binOperator = node.get("bin").get("value").toString().replace("\"","").replace("http://cordaO.org/","");
+                String right = node.get("right").get("value").toString().replace("\"","");
+                String leftType = node.get("leftType").get("value").toString().replace("\"","");
+                String desc = node.get("desc").get("value").toString().replace("\"","");
+                String rightType = node.get("rightType").get("value").toString().replace("\"","");
+                String commandName = node.get("commandName").get("value").toString().replace("\"","");
+                String lstateClass = "";
+                String txType = "";
+                try {
+                    lstateClass = node.get("lstateClass").get("value").toString().replace("\"","");
+                } catch (Exception e) {
+                }
+
+                if(!lstateClass.isEmpty()) {
+                    try {
+                        txType = leftType.contains("Input") ? tx.TX_INPUT:tx.TX_OUTPUT;
+                        stateProp = tx.getStateProperty(lName, lstateClass,txType, ldatatype.contains("Amount<Currency>")?true:false);
+
+                    } catch (Exception e) {
+                        stateProp = new MethodCallExpr();
+                        e.printStackTrace();
+                    }
+                } else if(left.contains("Size")) {
+                    stateProp = tx.txInputOutputSize(lName.contains("Input") ? tx.TX_INPUT:tx.TX_OUTPUT);
+                } else {
+                    String[] listIO = lName.split(" ");
+                    stateProp = tx.listStatesIO(listIO[1],listIO[0].contains("Input") ? tx.TX_INPUT:tx.TX_OUTPUT);
+                }
+                BinaryExpr.Operator operator = getOperator(binOperator);
+                ContractCondition contractCondition = rightType.contains("integer")? new ContractCondition(desc,stateProp,operator, new IntegerLiteralExpr(right)):new ContractCondition(desc,stateProp,operator, new StringLiteralExpr(right));
+                for (int i = 0; i < commandsWithConstraints.size(); i++) {
+                    if(commandsWithConstraints.get(i).commandName.equals(commandName)) {
+                        commandsWithConstraints.get(i).constraints.add(contractCondition);
+                        if(!lstateClass.isEmpty())  commandsWithConstraints.get(i).variables.add(tx.singleStateType(lstateClass, txType));
+                        if((lName.contains("Input") || lName.contains("Output")) && !lName.contains("Size")){
+                            String[] listIO = lName.split(" ");
+                            commandsWithConstraints.get(i).variables.add(tx.getListInputOutputsOfState(listIO[1],listIO[0]));
+                        }
+                    }
+                }
+            };
+            jsonNode.get("results").get("bindings").forEach(data);
+            List<ExpressionStmt> listWithoutDuplicates;
+            for (int i = 0; i < commandsWithConstraints.size(); i++) {
+                listWithoutDuplicates = commandsWithConstraints.get(i).variables.stream().distinct().collect(Collectors.toList());
+                commandsWithConstraints.get(i).variables = listWithoutDuplicates;
+            }
+            return commandsWithConstraints;
+        }
+
+        public static BinaryExpr.Operator getOperator(String operator) {
+            switch(operator) {
+                case "equals":
+                    return BinaryExpr.Operator.EQUALS;
+                case "greaterEquals":
+                    return BinaryExpr.Operator.GREATER_EQUALS;
+                case "greaterThan":
+                    return BinaryExpr.Operator.GREATER;
+                case "lessThan":
+                    return BinaryExpr.Operator.LESS;
+                case "lessEquals":
+                    return BinaryExpr.Operator.LESS_EQUALS;
+                case "notEquals":
+                    return BinaryExpr.Operator.NOT_EQUALS;
+                default:
+                    return BinaryExpr.Operator.EQUALS;
+            }
+        }
+
+    public static JsonNode createConnection(String url, String query) throws IOException {
+        URL obj = new URL(url);
+        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+        con.setRequestMethod("GET");
+        con.setRequestProperty("Accept", "application/sparql-results+json");
+        con.setRequestProperty("User-Agent", USER_AGENT);
+
+        con.setDoOutput(true);
+        OutputStream os = con.getOutputStream();
+        os.write(query.getBytes());
+        os.flush();
+        os.close();
+
+        int responseCode = con.getResponseCode();
+
+        if (responseCode == HttpURLConnection.HTTP_OK) { //success
+            BufferedReader in = new BufferedReader(new InputStreamReader(
+                    con.getInputStream()));
+            String inputLine;
+            StringBuffer response = new StringBuffer();
+
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+            in.close();
+
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode jsonNode = mapper.readTree(response.toString());
+            return jsonNode;
+        } else {
+            return null;
+        }
+    }
+
+}
+
+
+

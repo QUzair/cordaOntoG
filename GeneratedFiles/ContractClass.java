@@ -1,26 +1,74 @@
-package com.flows;
+package com.contracts;
 
-import com.google.common.collect.ImmutableList;
-import net.corda.core.contracts.StateAndRef;
-import net.corda.core.contracts.UniqueIdentifier;
-import net.corda.core.flows.FlowException;
-import net.corda.core.flows.FlowLogic;
-import net.corda.core.flows.FlowSession;
-import net.corda.core.flows.SignTransactionFlow;
-import net.corda.core.identity.Party;
-import net.corda.core.node.services.Vault;
-import net.corda.core.node.services.vault.QueryCriteria;
-import net.corda.core.transactions.SignedTransaction;
-import net.corda.core.utilities.ProgressTracker;
+import com.google.common.collect.Sets;
+import net.corda.core.contracts.*;
+import net.corda.core.identity.AbstractParty;
+import net.corda.core.transactions.LedgerTransaction;
+import net.corda.finance.contracts.asset.Cash;
+import java.security.PublicKey;
+import java.util.Currency;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import static java.util.stream.Collectors.toSet;
+import static net.corda.core.contracts.ContractsDSL.requireSingleCommand;
+import static net.corda.core.contracts.ContractsDSL.requireThat;
+import static net.corda.core.contracts.Structures.withoutIssuer;
+import static net.corda.finance.contracts.utils.StateSumming.sumCash;
 
-abstract class IOUBaseFlow extends FlowLogic<SignedTransaction> {
+public class IOUContract implements Contract {
 
-    Party getFirstNotary() throws FlowException {
-        List<Party> notaries = getServiceHub().getNetworkMapCache().getNotaryIdentities();
-        if (notaries.isEmpty()) {
-            throw new FlowException("No available Notary.");
+    private final static String ID = "com.template.IOUContract";
+
+    public interface Commands extends CommandData {
+
+        class Issue extends TypeOnlyCommandData implements Commands {
         }
-        return notaries.get(0);
+
+        class Settle extends TypeOnlyCommandData implements Commands {
+        }
+    }
+
+    @Override
+    public void verify(LedgerTransaction tx) {
+        final CommandWithParties<Commands> command = requireSingleCommand(tx.getCommands(), Commands.class);
+        final Commands commandData = command.getValue();
+        final Set<PublicKey> setOfSigners = new HashSet<>(command.getSigners());
+        if (commandData instanceof Commands.Issue)
+            verifyIssue(tx, setOfSigners);
+        else if (commandData instanceof Commands.Settle)
+            verifySettle(tx, setOfSigners);
+        else {
+            throw new IllegalArgumentException("Unrecognised Command");
+        }
+    }
+
+    private Set<PublicKey> keysFromParticipants(IOUState iouState) {
+        return iouState.getParticipants().stream().map(AbstractParty::getOwningKey).collect(toSet());
+    }
+
+    private void verifyIssue(LedgerTransaction tx, Set<PublicKey> signers) {
+        requireThat(empty req -> {
+            IOUState ioustateOutput = (IOUState) tx.getoutputStates().get(0);
+            req.using("No inputs should be consumed when issuing an obligation.", null.equals(tx.getInputStates().size()));
+            req.using("Only one obligation state should be created when issuing an obligation.", null.equals(tx.getOutputStates().size()));
+            req.using("A newly issued obligation must have a positive amount.", ioustateOutput.getValue().getQuantity() > 0);
+            req.using("A newly issued obligation must be less than $150.", ioustateOutput.getValue().getQuantity() < 15000);
+            req.using("The lender and borrower cannot be the same identity.", !ioustateOutput.getBorrower().equals(ioustateOutput.getLender()));
+            return null;
+        });
+    }
+
+    private void verifySettle(LedgerTransaction tx, Set<PublicKey> signers) {
+        requireThat(empty req -> {
+            List<IOUState> ioustateOutputs = tx.OutputsOfType(IOUState.class);
+            List<Cash.State> cash = tx.outputsOfType(Cash.State.class);
+            List<Cash.State> acceptableCash = cash.stream().filter(it -> it.getOwner().equals(ioustateOutput.getLender())).collect(Collectors.toList());
+            req.using("There must be no output obligation as it has been fully settled.", null.equals(ioustateOutputs.size()));
+            req.using("There must be one input obligation.", null.equals(tx.getInputStates().size()));
+            req.using("The amount settled should be equal to amount in initial contract.", ioustateInput.getValue().getQuantity().equals(withoutIssuer(sumCash(acceptableCash)).getQuantity()));
+            return null;
+        });
     }
 }

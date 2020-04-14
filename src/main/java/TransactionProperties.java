@@ -1,3 +1,4 @@
+import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.*;
@@ -50,9 +51,16 @@ public class TransactionProperties {
     public static MethodCallExpr txInputOutputSize(String stateType) {
         return new MethodCallExpr("size")
                 .setScope(
-                        new MethodCallExpr("get"+stateType+"States")
+                        new MethodCallExpr("get"+stateType.substring(0, 1).toUpperCase() + stateType.substring(1)+"States")
                                 .setScope(new NameExpr("tx")
                                 )
+                );
+    }
+
+    public static MethodCallExpr listStatesIO(String stateName, String inputOutput) {
+        return new MethodCallExpr("size")
+                .setScope(
+                        new NameExpr(camelCase(stateName,inputOutput)+"s")
                 );
     }
 
@@ -62,7 +70,7 @@ public class TransactionProperties {
 
     public static MethodCallExpr getStateProperty(String property,String stateName,String stateType,Boolean amount) throws Exception {
         if(amount) return new MethodCallExpr("getQuantity").setScope(new MethodCallExpr(camelCase("get",property)).setScope(new NameExpr(camelCase(stateName,stateType))));
-        else throw new Exception();
+        else return new MethodCallExpr(camelCase("get",property)).setScope(new NameExpr(camelCase(stateName,stateType)));
     }
 
     // List<Cash.State> cash = tx.outputsOfType(Cash.State.class);
@@ -105,6 +113,19 @@ public class TransactionProperties {
                 .setName("sumAcceptableCash")
                 .setType(new ClassOrInterfaceType().setName("Amount").setTypeArguments(new ClassOrInterfaceType().setName("Currency")))
         ));
+    }
+
+    public static MethodCallExpr getAcceptableCashQuantity() {
+        return StaticJavaParser.parseExpression("withoutIssuer(sumCash(acceptableCash)).getQuantity()");
+    }
+
+    public static ExpressionStmt getListInputOutputsOfState(String stateName,String inputOutput) {
+        VariableDeclarationExpr listIOStates = StaticJavaParser.parseVariableDeclarationExpr(String.format("List<%s> %ss = tx.%ssOfType(%s.class)",stateName,camelCase(stateName,inputOutput),inputOutput,stateName));
+        return new ExpressionStmt().setExpression(listIOStates);
+    }
+
+    public static MethodCallExpr getSumAcceptableVar() {
+        return new MethodCallExpr().setName("sumAcceptableCash");
     }
 
 }

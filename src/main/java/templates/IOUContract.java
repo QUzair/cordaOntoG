@@ -6,7 +6,6 @@ import net.corda.core.transactions.LedgerTransaction;
 import net.corda.finance.contracts.asset.Cash;
 
 import java.security.PublicKey;
-import java.util.Currency;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -62,7 +61,7 @@ public class IOUContract implements Contract {
             req.using("Only one obligation state should be created when issuing an obligation.",tx.getOutputStates().size() == 1);
             req.using("A newly issued obligation must have a positive amount.",obligation.getValue().getQuantity() > 0);
             req.using("A newly issued obligation must be less than $150.",obligation.getValue().getQuantity() < 150*100);
-            req.using("The lender and borrower cannot be the same identity.", obligation.getBorrower()!=obligation.getLender());
+            req.using("The lender and borrower cannot be the same identity.", obligation.getBorrower().equals(obligation.getLender()));
             req.using("Both lender and borrower together only may sign obligation issue transaction.", signers.equals(keysFromParticipants(obligation)));
             return null;
         });
@@ -95,12 +94,11 @@ public class IOUContract implements Contract {
             List<Cash.State> cash = tx.outputsOfType(Cash.State.class);
             List<Cash.State> acceptableCash = cash.stream()
                     .filter(it -> it.getOwner().equals(inputObligation.getLender())).collect(Collectors.toList());
-            Amount<Currency> sumAcceptableCash = withoutIssuer(sumCash(acceptableCash));
 
             req.using("There must be one input obligation.", obligationInputs.size() == 1);
             req.using("There must be output cash.", cash.size() != 0);
             req.using("There must be output cash paid to the recipient.", !acceptableCash.isEmpty());
-            req.using("The amount settled should be equal to amount in initial contract.",sumAcceptableCash.equals(inputObligation.getValue()));
+            req.using("The amount settled should be equal to amount in initial contract.",withoutIssuer(sumCash(acceptableCash)).getQuantity()==inputObligation.getValue().getQuantity());
             req.using("There must be no output obligation as it has been fully settled.", obligationOutputs.isEmpty());
             req.using("Both lender and borrower together only may sign obligation issue transaction.", signers.equals(keysFromParticipants(inputObligation)));
             return null;

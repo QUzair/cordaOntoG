@@ -7,9 +7,7 @@ import com.github.javaparser.ast.stmt.IfStmt;
 import com.github.javaparser.ast.stmt.ReturnStmt;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.PrimitiveType;
-import javassist.compiler.ast.MethodDecl;
-import javassist.expr.MethodCall;
-import templates.IOUContract;
+import dataModels.StateAndContract;
 
 
 import java.io.*;
@@ -32,9 +30,10 @@ public class StateCompilation {
         //-------------FETCHING----------------------//
 
         //Creating a map of field -> name, value pairs from tripleStore
-        Map<String, String> fieldsMap = JenaQuery.getStateProperties();
-        String stateName = JenaQuery.getStateName();
-        String contractName = "IOUContract";
+        Map<String, String> fieldsMap = QueryDB.getStateProperties();
+        StateAndContract stateAndContract =  QueryDB.getStateName();
+        String stateName = stateAndContract.stateName;
+        String contractName = stateAndContract.contractName;
 
         //-------------GENERATING----------------------//
 
@@ -42,7 +41,6 @@ public class StateCompilation {
         CompilationUnit compilationUnit = new CompilationUnit();
         generateStateImports(compilationUnit);
         compilationUnit.setPackageDeclaration("com.contracts");
-
 
         // Defining State Name
         ClassOrInterfaceDeclaration classDeclaration = generateStateClass(compilationUnit, stateName, contractName);
@@ -96,15 +94,19 @@ public class StateCompilation {
     }
 
     public static void generateStateField(ClassOrInterfaceDeclaration cd, String type, String param) {
-
         cd.addField(type, param, PRIVATE, FINAL);
     }
 
     public static void generateStateFieldGetter(ClassOrInterfaceDeclaration cd, String type, String param) {
         String methodName = "get" + param.substring(0, 1).toUpperCase() + param.substring(1);
-        cd.addMethod(methodName, PUBLIC)
+        MethodDeclaration md = new MethodDeclaration()
+                .setBody(new BlockStmt().addStatement(new ReturnStmt().setExpression(new NameExpr(param))))
                 .setType(type)
-                .setBody(new BlockStmt().addStatement(new ReturnStmt().setExpression(new NameExpr(param))));
+                .addModifier(PUBLIC)
+                .setName(methodName);
+
+        if(param=="linearId") md.addAnnotation(new MarkerAnnotationExpr().setName("Override"));
+        cd.addMember(md);
     }
 
     public static void generateFieldGetters(ClassOrInterfaceDeclaration cd, Map<String, String> fields) {

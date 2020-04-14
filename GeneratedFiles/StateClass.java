@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 @BelongsToContract(IOUContract.class)
 public class IOUState implements LinearState {
 
-    public IOUState(Party lender, Party borrower, int value, UniqueIdentifier linearId) {
+    public IOUState(Party lender, Party borrower, Amount<Currency> value, UniqueIdentifier linearId) {
         this.lender = lender;
         this.borrower = borrower;
         this.value = value;
@@ -27,7 +27,7 @@ public class IOUState implements LinearState {
 
     private final Party borrower;
 
-    private final int value;
+    private final Amount<Currency> value;
 
     private final UniqueIdentifier linearId;
 
@@ -39,10 +39,11 @@ public class IOUState implements LinearState {
         return borrower;
     }
 
-    public int getValue() {
+    public Amount<Currency> getValue() {
         return value;
     }
 
+    @Override
     public UniqueIdentifier getLinearId() {
         return linearId;
     }

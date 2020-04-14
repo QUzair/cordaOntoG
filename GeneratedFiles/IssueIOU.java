@@ -1,4 +1,4 @@
-package templates;
+package com.IssueIOU;
 
 import co.paralleluniverse.fibers.Suspendable;
 import com.google.common.collect.ImmutableList;
@@ -11,27 +11,37 @@ import net.corda.core.transactions.SignedTransaction;
 import net.corda.core.transactions.TransactionBuilder;
 import net.corda.core.utilities.ProgressTracker;
 import net.corda.core.utilities.ProgressTracker.Step;
-
 import java.security.PublicKey;
 import java.time.Duration;
 import java.util.Currency;
 import java.util.List;
 
 public class IssueIOU {
+
     @InitiatingFlow
     @StartableByRPC
     public static class Initiator extends IOUBaseFlow {
 
+        public Initiator(Amount<Currency> amount, Party lender, String externalId) {
+            this.amount = amount;
+            this.lender = lender;
+            this.externalId = externalId;
+        }
+
         private final Amount<Currency> amount;
+
         private final Party lender;
+
         private final String externalId;
 
-        private final Step INITIALISING = new Step("Performing initial steps.");
+        private final Step INITIALISING = new Step("Performing Initial Steps.");
+
         private final Step BUILDING = new Step("Building Transaction.");
+
         private final Step SIGNING = new Step("Signing transaction.");
 
-
         private final Step COLLECTING = new Step("Collecting counterparty signature.") {
+
             @Override
             public ProgressTracker childProgressTracker() {
                 return CollectSignaturesFlow.Companion.tracker();
@@ -39,21 +49,12 @@ public class IssueIOU {
         };
 
         private final Step FINALISING = new Step("Finalising transaction.") {
+
             @Override
             public ProgressTracker childProgressTracker() {
                 return FinalityFlow.Companion.tracker();
             }
         };
-
-        private final ProgressTracker progressTracker = new ProgressTracker(
-                INITIALISING, BUILDING, SIGNING, COLLECTING, FINALISING
-        );
-
-        public Initiator(Amount<Currency> amount, Party lender, String externalId) {
-            this.amount = amount;
-            this.lender = lender;
-            this.externalId = externalId;
-        }
 
         @Override
         public ProgressTracker getProgressTracker() {
@@ -63,36 +64,19 @@ public class IssueIOU {
         @Suspendable
         @Override
         public SignedTransaction call() throws FlowException {
-            // Step 1. Initialisation.
             progressTracker.setCurrentStep(INITIALISING);
-            final IOUState obligation = new IOUState(amount, lender, getOurIdentity(),new UniqueIdentifier(externalId));
+            final IOUState newState = new IOUState(amount, lender, getOurIdentity(), new UniqueIdentifier(externalId));
+            final List<PublicKey> requiredSigners = newState.getParticipantKeys();
+            final FlowSession otherFlow = initiateFlow(lender);
             final PublicKey ourSigningKey = getOurIdentity().getOwningKey();
-            final FlowSession lenderFlow = initiateFlow(lender);
-            final List<PublicKey> requiredSigners = obligation.getParticipantKeys();
-
-            // Step 2. Building.
             progressTracker.setCurrentStep(BUILDING);
-            final TransactionBuilder utx = new TransactionBuilder(getFirstNotary())
-                    .addOutputState(obligation, IOUContract.ID)
-                    .addCommand(new IOUContract.Commands.Issue(), requiredSigners)
-                    .setTimeWindow(getServiceHub().getClock().instant(), Duration.ofMinutes(5));
-
-            // Step 3. Sign the transaction.
+            final TransactionBuilder utx = new TransactionBuilder(getFirstNotary()).addCommand(new IOUContract.Commands.Issue(), requiredSigners).addOutputState(newState, IOUContract.ID).setTimeWindow(getServiceHub().getClock().instant(), Duration.ofMinutes(5));
             progressTracker.setCurrentStep(SIGNING);
             utx.verify(getServiceHub());
             final SignedTransaction ptx = getServiceHub().signInitialTransaction(utx, ourSigningKey);
-
-            // Step 4. Get the counter-party signature.
             progressTracker.setCurrentStep(COLLECTING);
-            final ImmutableSet<FlowSession> sessions = ImmutableSet.of(lenderFlow);
-            final SignedTransaction stx = subFlow(new CollectSignaturesFlow(
-                    ptx,
-                    sessions,
-                    ImmutableList.of(ourSigningKey),
-                    COLLECTING.childProgressTracker())
-            );
-
-            // Step 5. Finalise the transaction.
+            final ImmutableSet<FlowSession> sessions = ImmutableSet.of(otherFlow);
+            final SignedTransaction stx = subFlow(new CollectSignaturesFlow(ptx, sessions, ImmutableList.of(ourSigningKey), COLLECTING.childProgressTracker()));
             progressTracker.setCurrentStep(FINALISING);
             return subFlow(new FinalityFlow(stx, sessions, FINALISING.childProgressTracker()));
         }
@@ -100,6 +84,7 @@ public class IssueIOU {
 
     @InitiatedBy(Initiator.class)
     public static class Responder extends FlowLogic<SignedTransaction> {
+
         private final FlowSession otherFlow;
 
         public Responder(FlowSession otherFlow) {

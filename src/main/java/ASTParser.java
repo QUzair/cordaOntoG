@@ -15,17 +15,15 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-public class VoidVisitorStarter {
+public class ASTParser {
 
-    private static final String FILE_PATH = "src/main/java/templates/IOUState.java";
-    private static final String AST_YAML_FILE = "src/main/resources/AST_Vis_Base_State.yaml";
-
+    private static final String FILE_PATH = "src/main/java/templates/IOUContract.java";
+    private static final String AST_YAML_FILE = "src/main/resources/AST_Vis_Contract.yaml";
 
     public static void main(String[] args) throws Exception {
 
         CompilationUnit cu = StaticJavaParser.parse(new FileInputStream(FILE_PATH));
         YamlPrinter printer = new YamlPrinter(true);
-        //System.out.println(printer.output(cu));
 
         try (FileOutputStream fos = new FileOutputStream(AST_YAML_FILE)) {
             fos.write(printer.output(cu).getBytes());
@@ -42,7 +40,6 @@ public class VoidVisitorStarter {
     }
 
     private static class ClassNamePrinter extends VoidVisitorAdapter<Void> {
-
         @Override
         public void visit(ClassOrInterfaceDeclaration cd, Void arg) {
             super.visit(cd, arg);
