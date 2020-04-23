@@ -12,7 +12,6 @@ public class TransactionProperties {
     public static String TX_OUTPUT = "output";
 
     static String camelCase(String first, String second) {
-        second = second.toLowerCase();
         first = first.toLowerCase();
         return  first + second.substring(0, 1).toUpperCase() + second.substring(1);
     }

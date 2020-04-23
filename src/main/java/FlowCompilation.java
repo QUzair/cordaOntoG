@@ -15,27 +15,22 @@ import static com.github.javaparser.ast.Modifier.Keyword.*;
 public class FlowCompilation {
     public static void main(String[] args) throws Exception {
 
-        /*
-        Requires:
-        */
+        List<FlowModel> flowProperties = QueryDB.getFlowProperties();
+        for(FlowModel flow: flowProperties) {
+            createNewFlowClass(flow);
+        }
+
+    }
+
+    static void createNewFlowClass(FlowModel flow) throws IOException {
+
 
         //-------------FETCHING----------------------//
 
-        //Creating an array of commands from triplestore
-        String packageName = "com.template.IssueFlow";
-        List<String> commands = Arrays.asList("Issue", "Transfer");
-        String commandName = "Issue";
-        String stateName = "IOUState";
-        String contractName = "IOUContract";
-        String appName = "IOU";
-        String flowName = "IssueIOU";
-        String otherParty = "lender";
-        Map<String, String> fieldsMap = new HashMap<String, String>();
-        fieldsMap.put("amount", "Amount<Currency>");
-        fieldsMap.put("lender", "Party");
-        fieldsMap.put("externalId", "String");
-        List<String> paramsList = Arrays.asList("amount", "lender", "getOurIdentity()");
-
+        String appName = QueryDB.getAppName();
+        String flowName = flow.flowName;
+        Map<String, String> fieldsMap = flow.properties;
+        StringBuilder transactionComponents = flow.transaction;
         //-------------GENERATING----------------------//
 
         // Generating Flow class
@@ -59,9 +54,8 @@ public class FlowCompilation {
         generateProgressTracker(initiatorClass);
         generateProgressTrackerGetter(initiatorClass);
 
-
         //Generate Call Function with Steps
-        generateMainFlowCall(initiatorClass, stateName, contractName, commandName, otherParty, paramsList);
+        generateMainFlowCall(initiatorClass, flow, transactionComponents);
 
         //Add Responder Class
         generateResponderFlow(classDeclaration, appName);
@@ -71,28 +65,35 @@ public class FlowCompilation {
         createNewFlowClassFile(compilationUnit.toString(), flowName);
     }
 
-
-    public static void generateMainFlowCall(ClassOrInterfaceDeclaration cd, String stateName, String contractName, String commandName, String otherParty, List<String> paramsList) {
-        Boolean settlingCash = false;
-        String amountVar = "amount";
+    public static void generateMainFlowCall(ClassOrInterfaceDeclaration cd, FlowModel flow, StringBuilder transactionComponents) {
         BlockStmt blockStmt = new BlockStmt();
         cd.addMember(generateFlowCallFunction().setBody(blockStmt));
 
-        generateInitialisingStatements(blockStmt, stateName, otherParty, paramsList);
-        generateBuildingStatements(blockStmt, contractName, commandName);
-        if (settlingCash) {
-            generateCheckEnoughCashStatements(blockStmt, amountVar);
-            generateCashSpendStatements(blockStmt, otherParty, amountVar);
+        generateInitialisingStatements(blockStmt, flow.otherParty, flow);
+        generateBuildingStatements(blockStmt, transactionComponents);
+        if (!flow.amountVar.isEmpty()) {
+            generateCheckEnoughCashStatements(blockStmt, flow.amountVar);
+            generateCashSpendStatements(blockStmt, flow.otherParty, flow.amountVar);
         }
-        generateSigningStatements(blockStmt);
+        generateSigningStatements(blockStmt,flow);
         generateCollectionStatements(blockStmt);
         generateFinalisingStatements(blockStmt);
+    }
+
+    public static VariableDeclarationExpr generateSigningKeys(FlowModel flow) {
+        StringBuilder keys = new StringBuilder();
+        keys.append(".add(ourSigningKey)");
+        if(!flow.payee.isEmpty()) keys.append(".addAll(cashSigningKeys)");
+        VariableDeclarationExpr signingKeys = StaticJavaParser.parseVariableDeclarationExpr(String.format("final List<PublicKey> signingKeys = new ImmutableList.Builder<PublicKey>()\n" +
+                keys +
+                ".build()"));
+       return signingKeys;
     }
 
     public static void generateCashSpendStatements(BlockStmt blockStmt, String payee, String amountVar) {
         VariableDeclarationExpr cashKeys = StaticJavaParser.parseVariableDeclarationExpr(String.format("final List<PublicKey> cashSigningKeys = CashUtils.generateSpend(\n" +
                 "                    getServiceHub(),\n" +
-                "                    builder,\n" +
+                "                    utx,\n" +
                 "                    ImmutableList.of(new PartyAndAmount<>(newState.%s(), %s)),\n" +
                 "                    getOurIdentityAndCert(),\n" +
                 "                    ImmutableSet.of()).getSecond()", TransactionProperties.camelCase("get", payee), amountVar));
@@ -104,55 +105,50 @@ public class FlowCompilation {
         return new ExpressionStmt().setExpression(new MethodCallExpr().setName("setCurrentStep").setScope(new NameExpr("progressTracker")).addArgument(new NameExpr(stepName)));
     }
 
-    public static void generateInitialisingStatements(BlockStmt blockStmt, String stateName, String otherParty, List<String> stateParams) {
+    public static void generateInitialisingStatements(BlockStmt blockStmt, String otherParty,FlowModel flow) {
+        List<VariableDeclarationExpr> allNewStates = new ArrayList<>();
+        for(NewState newState: flow.newStates) {
+            String params = newState.params.stream().collect(Collectors.joining(","));
+            VariableDeclarationExpr newVar = StaticJavaParser.parseVariableDeclarationExpr(String.format("final %s newState = new %s(%s,new UniqueIdentifier(externalId))", newState.stateName, newState.stateName, params));
+            allNewStates.add(newVar);
+        }
 
-        Boolean retrieveState = false;
-        String params = stateParams.stream().collect(Collectors.joining(","));
-        VariableDeclarationExpr newState;
-        VariableDeclarationExpr retrievedState = new VariableDeclarationExpr();
+        for(RetrieveState retrieveState: flow.retrieveStates) {
+            VariableDeclarationExpr retrievedStateRef = StaticJavaParser.parseVariableDeclarationExpr(String.format("final StateAndRef<%s> retrievedState = %s(%s)", retrieveState.stateName, TransactionProperties.camelCase("get", retrieveState.stateName) + "ByLinearId",retrieveState.propertyName));
+            VariableDeclarationExpr retrievedState  = StaticJavaParser.parseVariableDeclarationExpr(String.format("final %s newState = retrievedState.getState().getData()", retrieveState.stateName));
+            allNewStates.add(retrievedStateRef);
+            allNewStates.add(retrievedState);
+        }
+
         VariableDeclarationExpr requiredSigners = StaticJavaParser.parseVariableDeclarationExpr(String.format("final List<PublicKey> requiredSigners = newState.getParticipantKeys()"));
         VariableDeclarationExpr otherFlow = StaticJavaParser.parseVariableDeclarationExpr(String.format("final FlowSession otherFlow = initiateFlow(%s)", otherParty));
         VariableDeclarationExpr ourSigningKey = StaticJavaParser.parseVariableDeclarationExpr(String.format("final PublicKey ourSigningKey = getOurIdentity().getOwningKey()"));
 
-        if (retrieveState) {
-            newState = StaticJavaParser.parseVariableDeclarationExpr(String.format("final %s newState = retrievedState.getState().getData()", stateName));
-            retrievedState = StaticJavaParser.parseVariableDeclarationExpr(String.format("final StateAndRef<%s> retrievedState = %s(linearId)", stateName, TransactionProperties.camelCase("get", stateName) + "ByLinearId"));
-        } else {
-            newState = StaticJavaParser.parseVariableDeclarationExpr(String.format("final %s newState = new %s(%s,new UniqueIdentifier(externalId))", stateName, stateName, params));
+        blockStmt.addStatement(generateSetCurrentStep("INITIALISING"));
+        for(VariableDeclarationExpr initNewState:allNewStates) {
+            blockStmt.addStatement(new ExpressionStmt().setExpression(initNewState));
         }
 
-        blockStmt.addStatement(generateSetCurrentStep("INITIALISING"));
-        if (retrieveState) blockStmt.addStatement(new ExpressionStmt().setExpression(retrievedState));
-        blockStmt.addStatement(new ExpressionStmt().setExpression(newState));
         blockStmt.addStatement(new ExpressionStmt().setExpression(requiredSigners));
         blockStmt.addStatement(new ExpressionStmt().setExpression(otherFlow));
         blockStmt.addStatement(new ExpressionStmt().setExpression(ourSigningKey));
     }
 
-    public static void generateBuildingStatements(BlockStmt blockStmt, String contractName, String commandName) {
-
-        String addCommand = String.format(".addCommand(new %s.Commands.%s(), requiredSigners)",contractName,commandName);
-        String addOutput = String.format(".addOutputState(newState, %s.ID)",contractName);
-        String addTimeWindow = String.format( ".setTimeWindow(getServiceHub().getClock().instant(), Duration.ofMinutes(5))");
-
-        StringBuilder transactionComponents = new StringBuilder();
-        transactionComponents.append(addCommand);
-        transactionComponents.append(addOutput);
-        transactionComponents.append(addTimeWindow);
+    public static void generateBuildingStatements(BlockStmt blockStmt, StringBuilder transactionComponents) {
 
         VariableDeclarationExpr tx = StaticJavaParser.parseVariableDeclarationExpr("final TransactionBuilder utx = new TransactionBuilder(getFirstNotary())" +
                 transactionComponents
                );
-
         blockStmt.addStatement(generateSetCurrentStep("BUILDING"));
         blockStmt.addStatement(new ExpressionStmt().setExpression(tx));
     }
 
-    public static void generateSigningStatements(BlockStmt blockStmt) {
+    public static void generateSigningStatements(BlockStmt blockStmt, FlowModel flow) {
         MethodCallExpr verifyTx = StaticJavaParser.parseExpression(String.format("utx.verify(getServiceHub())"));
-        VariableDeclarationExpr ourSignTx = StaticJavaParser.parseVariableDeclarationExpr(String.format("final SignedTransaction ptx = getServiceHub().signInitialTransaction(utx, ourSigningKey)"));
+        VariableDeclarationExpr ourSignTx = StaticJavaParser.parseVariableDeclarationExpr(String.format("final SignedTransaction ptx = getServiceHub().signInitialTransaction(utx, signingKeys)"));
         blockStmt.addStatement(generateSetCurrentStep("SIGNING"));
         blockStmt.addStatement(new ExpressionStmt().setExpression(verifyTx));
+        blockStmt.addStatement(new ExpressionStmt().setExpression(generateSigningKeys(flow)));
         blockStmt.addStatement(new ExpressionStmt().setExpression(ourSignTx));
     }
 
@@ -161,7 +157,7 @@ public class FlowCompilation {
         VariableDeclarationExpr signedTransaction = StaticJavaParser.parseVariableDeclarationExpr(String.format("final SignedTransaction stx = subFlow(new CollectSignaturesFlow(\n" +
                 "                    ptx,\n" +
                 "                    sessions,\n" +
-                "                    ImmutableList.of(ourSigningKey),\n" +
+                "                    signingKeys,\n" +
                 "                    COLLECTING.childProgressTracker())\n" +
                 "            )"));
 
@@ -250,6 +246,8 @@ public class FlowCompilation {
                         .setName("progressTracker")
                         .setType(new ClassOrInterfaceType().setName("ProgressTracker"))
                 );
+
+        cd.addMember(fd);
     }
 
     public static void generateSteps(ClassOrInterfaceDeclaration cd) {

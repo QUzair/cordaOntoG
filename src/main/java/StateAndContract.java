@@ -1,5 +1,3 @@
-package dataModels;
-
 public class StateAndContract {
     public String stateName;
     public String  contractName;

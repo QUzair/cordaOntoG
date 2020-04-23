@@ -46,7 +46,6 @@ abstract class IOUBaseFlow extends FlowLogic<SignedTransaction> {
 
         @Override
         protected void checkTransaction(SignedTransaction tx) {
-
         }
     }
 

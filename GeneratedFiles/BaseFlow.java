@@ -14,7 +14,7 @@ import net.corda.core.transactions.SignedTransaction;
 import net.corda.core.utilities.ProgressTracker;
 import java.util.List;
 
-abstract class ObligationBaseFlow extends FlowLogic<SignedTransaction> {
+abstract class IOUBaseFlow extends FlowLogic<SignedTransaction> {
 
     Party getFirstNotary() throws FlowException {
         List<Party> notaries = getServiceHub().getNetworkMapCache().getNotaryIdentities();
@@ -24,7 +24,7 @@ abstract class ObligationBaseFlow extends FlowLogic<SignedTransaction> {
         return notaries.get(0);
     }
 
-    StateAndRef<IOUState> getIoustateByLinearId(UniqueIdentifier linearId) throws FlowException {
+    StateAndRef<IOUState> getIOUStateByLinearId(UniqueIdentifier linearId) throws FlowException {
         QueryCriteria queryCriteria = new QueryCriteria.LinearStateQueryCriteria(null, ImmutableList.of(linearId), Vault.StateStatus.UNCONSUMED, null);
         List<StateAndRef<IOUState>> ioustate = getServiceHub().getVaultService().queryBy(IOUState.class, queryCriteria).getStates();
         if (ioustate.size() != 1) {

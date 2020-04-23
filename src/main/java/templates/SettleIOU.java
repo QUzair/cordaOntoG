@@ -86,7 +86,6 @@ public class SettleIOU {
                         "Borrower has only %s but needs %s to settle.", cashBalance, amount));
             }
 
-
             // Step 2. Building.
             progressTracker.setCurrentStep(BUILDING);
             final List<PublicKey> requiredSigners = inputObligation.getParticipantKeys();
@@ -94,7 +93,6 @@ public class SettleIOU {
             final TransactionBuilder builder = new TransactionBuilder(getFirstNotary())
                     .addInputState(obligationToSettle)
                     .addCommand(new IOUContract.Commands.Settle(), requiredSigners);
-
 
             // Stage 7. Get some cash from the vault and add a spend to our transaction builder.
             final List<PublicKey> cashSigningKeys = CashUtils.generateSpend(

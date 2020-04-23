@@ -16,31 +16,31 @@ import java.util.stream.Collectors;
 @BelongsToContract(IOUContract.class)
 public class IOUState implements LinearState {
 
-    public IOUState(Party lender, Party borrower, Amount<Currency> value, UniqueIdentifier linearId) {
-        this.lender = lender;
-        this.borrower = borrower;
+    public IOUState(Amount<Currency> value, Party borrower, Party lender, UniqueIdentifier linearId) {
         this.value = value;
+        this.borrower = borrower;
+        this.lender = lender;
         this.linearId = linearId;
     }
 
-    private final Party lender;
+    private final Amount<Currency> value;
 
     private final Party borrower;
 
-    private final Amount<Currency> value;
+    private final Party lender;
 
     private final UniqueIdentifier linearId;
 
-    public Party getLender() {
-        return lender;
+    public Amount<Currency> getValue() {
+        return value;
     }
 
     public Party getBorrower() {
         return borrower;
     }
 
-    public Amount<Currency> getValue() {
-        return value;
+    public Party getLender() {
+        return lender;
     }
 
     @Override
@@ -50,7 +50,7 @@ public class IOUState implements LinearState {
 
     @Override
     public List<AbstractParty> getParticipants() {
-        return Arrays.asList(lender,borrower);
+        return Arrays.asList(borrower,lender);
     }
 
     public List<PublicKey> getParticipantKeys() {
@@ -63,11 +63,11 @@ public class IOUState implements LinearState {
             return false;
         }
         IOUState other = (IOUState) obj;
-        linearId.equals(other.getLinearid()) && value.equals(other.getValue()) && borrower.equals(other.getBorrower()) && lender.equals(other.getLender());
+        linearId.equals(other.getLinearId()) && lender.equals(other.getLender()) && borrower.equals(other.getBorrower()) && value.equals(other.getValue());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(lender, borrower, value, linearId);
+        return Objects.hash(value, borrower, lender, linearId);
     }
 }

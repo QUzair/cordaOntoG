@@ -44,17 +44,17 @@ public class IOUContract implements Contract {
         }
     }
 
-    private Set<PublicKey> keysFromParticipants(IOUState iouState) {
-        return iouState.getParticipants().stream().map(AbstractParty::getOwningKey).collect(toSet());
+    private Set<PublicKey> keysFromParticipants(IOUState ioustate) {
+        return ioustate.getParticipants().stream().map(AbstractParty::getOwningKey).collect(toSet());
     }
 
     private void verifyIssue(LedgerTransaction tx, Set<PublicKey> signers) {
         requireThat(empty req -> {
             IOUState ioustateOutput = (IOUState) tx.getoutputStates().get(0);
-            req.using("No inputs should be consumed when issuing an obligation.", null.equals(tx.getInputStates().size()));
-            req.using("Only one obligation state should be created when issuing an obligation.", null.equals(tx.getOutputStates().size()));
             req.using("A newly issued obligation must have a positive amount.", ioustateOutput.getValue().getQuantity() > 0);
             req.using("A newly issued obligation must be less than $150.", ioustateOutput.getValue().getQuantity() < 15000);
+            req.using("No inputs should be consumed when issuing an obligation.", tx.getInputStates().size().equals(0));
+            req.using("Only one obligation state should be created when issuing an obligation.", tx.getOutputStates().size().equals(1));
             req.using("The lender and borrower cannot be the same identity.", !ioustateOutput.getBorrower().equals(ioustateOutput.getLender()));
             return null;
         });
@@ -65,9 +65,9 @@ public class IOUContract implements Contract {
             List<IOUState> ioustateOutputs = tx.OutputsOfType(IOUState.class);
             List<Cash.State> cash = tx.outputsOfType(Cash.State.class);
             List<Cash.State> acceptableCash = cash.stream().filter(it -> it.getOwner().equals(ioustateOutput.getLender())).collect(Collectors.toList());
-            req.using("There must be no output obligation as it has been fully settled.", null.equals(ioustateOutputs.size()));
-            req.using("There must be one input obligation.", null.equals(tx.getInputStates().size()));
-            req.using("The amount settled should be equal to amount in initial contract.", ioustateInput.getValue().getQuantity().equals(withoutIssuer(sumCash(acceptableCash)).getQuantity()));
+            req.using("There must be one input obligation.", tx.getInputStates().size().equals(1));
+            req.using("There must be no output obligation as it has been fully settled.", ioustateOutputs.size().equals(0));
+            req.using("The amount settled should be equal to amount in initial contract.", withoutIssuer(sumCash(acceptableCash)).getQuantity().equals(ioustateInput.getValue().getQuantity()));
             return null;
         });
     }

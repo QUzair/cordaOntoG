@@ -7,7 +7,6 @@ import com.github.javaparser.ast.expr.IntegerLiteralExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.StringLiteralExpr;
 import com.github.javaparser.ast.stmt.ExpressionStmt;
-import dataModels.StateAndContract;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -27,14 +26,12 @@ public class QueryDB {
             "            ?cons :contractName ?contractName .  \n" +
             "}";
 
-    public static String statePropertiesQuery = "query=PREFIX :<http://cordaO.org/> SELECT DISTINCT ?stateName ?propertyName ?dataType ?contractClass WHERE {\n" +
+    public static String statePropertiesQuery = "query=PREFIX :<http://cordaO.org/> SELECT DISTINCT ?stateName ?propertyName ?dataType {\n" +
             "    ?state a :State ;\n" +
             "                :stateName ?stateName ;\n" +
-            "                :hasProperty ?props ;\n" +
-            "                :belongsTo ?cons .\n" +
-            "    ?cons :contractName ?contractClass .       \n" +
-            "    ?props :propertyName ?propertyName ;\n" +
-            "            :datatype ?dataType .  \n" +
+            "                :properties/rdf:rest*/rdf:first ?prop .\n" +
+            "    ?prop :propertyName ?propertyName ;\n" +
+            "          :datatype ?dataType .\n" +
             "}";
 
     public static String commandsQuery = "query=PREFIX :<http://cordaO.org/> SELECT ?name WHERE {\n" +
@@ -91,7 +88,7 @@ public class QueryDB {
             "    ?rightProp :propertyName ?rName .\n" +
             "OPTIONAL {    ?rightProp ^:hasProperty ?rstate .\n" +
             "    ?leftProp ^:hasProperty ?lstate .\n" +
-            "OPTIONAL {    ?leftProp :owner ?payeeProp .\n" +
+            "OPTIONAL {    ?leftProp :payee ?payeeProp .\n" +
             "    ?payeeProp ^:hasProperty ?state .\n" +
             "    ?state :stateName ?payeeState ." +
             "    ?payeeProp :propertyName ?payee .}" +
@@ -101,14 +98,174 @@ public class QueryDB {
             "    ?rightProp :datatype ?rdatatype .\n" +
             "}";
 
+    public static String flowPropertiesQuery = "query=PREFIX :<http://cordaO.org/> SELECT ?flowName ?flowPropName ?datatype { \n" +
+            "                ?flow a :Flow; \n" +
+            "                    :flowName ?flowName .\n" +
+            "                ?flow :properties/rdf:rest*/rdf:first ?flowProp . \n" +
+            "                ?flowProp :flowPropertyName ?flowPropName; \n" +
+            "                          :datatype ?datatype .   \n" +
+            "            }";
 
+    public static String transactionPropertiesQuery = "query=PREFIX :<http://cordaO.org/> SELECT ?flowName ?contractName ?otherParty ?inputState ?inputStateType ?commandName ?outputState ?outputStateType ?payee ?amountVar { \n" +
+            "                ?flow a :Flow; \n" +
+            "                    :flowName ?flowName ; \n" +
+            "                    :otherParty ?otherPartyProp ;\n" +
+            "                    :hasTransaction ?tx . \n" +
+            "                \n" +
+            "                ?tx a :Transaction ;\n" +
+            "                :hasCommand ?comm .\n" +
+            "                ?comm ^:hasCommand ?contract .\n" +
+            "                ?comm :commandName ?commandName .\n" +
+            "                ?contract :contractName ?contractName . \n" +
+            "                ?otherPartyProp :flowPropertyName ?otherParty .\n" +
+            "                OPTIONAL {\n" +
+            "                    ?tx :hasOutputState ?outputState .\n" +
+            "                    ?outputState a ?outputStateType .\n" +
+            "                    OPTIONAL {\n" +
+            "                        ?outputState a :Cash ;\n" +
+            "                                    :payee ?payeeProp ;\n" +
+            "                                     :amount ?amount .\n" +
+            "                        ?payeeProp :propertyName ?payee .\n" +
+            "                        ?amount :flowPropertyName ?amountVar .\n" +
+            "                    }\n" +
+            "                }\n" +
+            "                OPTIONAL {\n" +
+            "                    ?tx :hasInputState ?inputState .\n" +
+            "                    ?inputState a ?inputStateType .\n" +
+            "                }\n" +
+            "}";
 
-    public static String dbUrl = "http://localhost:5820/iou/query";
+    public static String outputStateParamsQuery = "query=PREFIX :<http://cordaO.org/> SELECT ?flowName ?propName ?stateName{ \n" +
+            "                ?flow a :Flow; \n" +
+            "                    :flowName ?flowName ; \n" +
+            "                    :hasTransaction ?tx . \n" +
+            "                    ?tx :hasOutputState ?outputState .  \n" +
+            "                    ?outputState a :NewState ;\n" +
+            "                                 :stateClass ?state .\n" +
+            "                    ?state :stateName ?stateName .\n" +
+            "                    ?outputState :newProperties/rdf:rest*/rdf:first ?prop . \n" +
+            "                ?prop :flowPropertyName ?propName . \n" +
+            "}";
+
+    public static String inputStateIDQuery = "query=PREFIX :<http://cordaO.org/> SELECT ?flowName ?stateName ?propName {\n" +
+            "    ?flow a :Flow;\n" +
+            "        :flowName ?flowName ;\n" +
+            "        :hasTransaction ?tx .\n" +
+            "    ?tx :hasCommand ?command . \n" +
+            "        ?tx :hasInputState ?inputType . \n" +
+            "        ?inputState a :RetrievedState ;\n" +
+            "                    :stateClass ?state ;\n" +
+            "                    :retrieveWith ?prop .\n" +
+            "        ?prop :flowPropertyName ?propName .\n" +
+            "        ?state :stateName ?stateName  .\n" +
+            "}";
+
+    public static String dbUrl = "http://localhost:5820/iou3/query";
 
     public static void main(String[] args) throws Exception {
-        getStateProperties();
-        getStateName();
-        getContractConditionsInitiator();
+//        getStateProperties();
+//        getStateName();
+//        getContractConditionsInitiator();
+        getFlowProperties();
+    }
+
+    public static void getOutputStateParams( List<FlowModel> flows) throws IOException {
+        JsonNode jsonNode = createConnection(dbUrl, outputStateParamsQuery);
+        List<String> params = new ArrayList<>();
+        Consumer<JsonNode> data = (JsonNode node) -> {
+            String propName = (getNodeParam(node, "propName", false));
+            String flowName = (getNodeParam(node, "flowName", false));
+            String stateName = (getNodeParam(node, "stateName", false));
+            for (int i = 0; i < flows.size(); i++) {
+                if (flows.get(i).flowName.equals(flowName)) {
+                    if (flows.get(i).newStates.stream().filter(it -> it.stateName.contains(stateName)).collect(Collectors.toList()).size() == 0) {
+                        flows.get(i).newStates.add(new NewState(stateName));
+                    }
+                    for (int j = 0; j < flows.get(i).newStates.size(); j++) {
+                        if(flows.get(i).newStates.get(j).stateName.equals(stateName)) {
+                            flows.get(i).newStates.get(j).params.add(propName);
+                        }
+                    }
+                }
+            }
+        };
+        jsonNode.get("results").get("bindings").forEach(data);
+        }
+
+    public static void getInputStateParams( List<FlowModel> flows) throws IOException {
+        JsonNode jsonNode = createConnection(dbUrl, inputStateIDQuery);
+        List<String> params = new ArrayList<>();
+        Consumer<JsonNode> data = (JsonNode node) -> {
+            String propName = (getNodeParam(node, "propName", false));
+            String flowName = (getNodeParam(node, "flowName", false));
+            String stateName = (getNodeParam(node, "stateName", false));
+            for (int i = 0; i < flows.size(); i++) {
+                if (flows.get(i).flowName.equals(flowName)) {
+                    flows.get(i).retrieveStates.add(new RetrieveState(propName,stateName));
+                }
+            }
+        };
+        jsonNode.get("results").get("bindings").forEach(data);
+    }
+
+
+    public static List<FlowModel> getFlowProperties() throws IOException {
+        JsonNode jsonNode = createConnection(dbUrl,flowPropertiesQuery);
+        List<FlowModel> flows = new ArrayList<FlowModel>();
+
+        Consumer<JsonNode> data = (JsonNode node) -> {
+            String flowName = (getNodeParam(node, "flowName",false));
+            String flowPropName = (getNodeParam(node, "flowPropName",false));
+            String dataType = (getNodeParam(node, "datatype",false));
+            if(flows.stream().filter(it -> it.flowName.contains(flowName)).collect(Collectors.toList()).size()==0) {
+                flows.add(new FlowModel(flowName));
+            }
+            for (int i = 0; i < flows.size(); i++) {
+                if(flows.get(i).flowName.equals(flowName)) {
+                    flows.get(i).properties.put(flowPropName,dataType);
+                }
+            }
+        };
+        jsonNode.get("results").get("bindings").forEach(data);
+        getTransactionProperties(flows);
+        getOutputStateParams(flows);
+        getInputStateParams(flows);
+        return flows;
+    }
+
+    public static void getTransactionProperties(List<FlowModel> flows) throws IOException {
+        JsonNode jsonNode = createConnection(dbUrl,transactionPropertiesQuery);
+        Consumer<JsonNode> data = (JsonNode node) -> {
+            String flowName = (getNodeParam(node, "flowName",false));
+            String commandName = (getNodeParam(node, "commandName",false));
+            String inputStateURI = (getNodeParam(node, "inputState",true));
+            String inputStateType = (getNodeParam(node, "inputStateType",false));
+            String outputStateURI = (getNodeParam(node, "outputState",true));
+            String outputStateType = (getNodeParam(node, "outputStateType",false));
+            String payee = (getNodeParam(node, "payee",false));
+            String amountVar = (getNodeParam(node, "amountVar",false));
+            String contractName = (getNodeParam(node, "contractName",false));
+            String otherParty = (getNodeParam(node, "otherParty",false));
+
+            for (int i = 0; i < flows.size(); i++) {
+                if(flows.get(i).flowName.equals(flowName)) {
+                    flows.get(i).otherParty = otherParty;
+                    flows.get(i).transaction.append(String.format(".addCommand(new %s.Commands.%s(), requiredSigners)",contractName,commandName));
+                    if(inputStateType.contains("RetrievedState")) {
+                        flows.get(i).transaction.append(String.format(".addInputState(retrievedState)"));
+                    }
+                    flows.get(i).transaction.append(String.format(".setTimeWindow(getServiceHub().getClock().instant(), Duration.ofMinutes(5))"));
+                    if(outputStateType.contains("NewState")) {
+                        flows.get(i).transaction.append(String.format(".addOutputState(newState, %s.ID)",contractName));
+                    }
+                    if(!amountVar.isEmpty() && !payee.isEmpty()) {
+                        flows.get(i).amountVar = amountVar;
+                        flows.get(i).payee = payee;
+                    }
+                }
+            }
+        };
+        jsonNode.get("results").get("bindings").forEach(data);
     }
 
     public static List<String> getCommands() throws IOException {
@@ -119,7 +276,6 @@ public class QueryDB {
             commands.add(node.get("name").get("value").toString().replace("\"",""));
         };
         jsonNode.get("results").get("bindings").forEach(data);
-
         return commands;
     }
 
@@ -135,9 +291,7 @@ public class QueryDB {
         }
 
     public static Map<String, String> getStateProperties() throws IOException {
-            // Return Map Result
-            Map<String, String> fieldsMap = new HashMap<>();
-            fieldsMap.put("linearId","UniqueIdentifier");
+            Map<String, String> fieldsMap = new LinkedHashMap<>();
 
             JsonNode jsonNode = createConnection(dbUrl,statePropertiesQuery);
 
@@ -145,6 +299,7 @@ public class QueryDB {
                 fieldsMap.put(node.get("propertyName").get("value").toString().replace("\"",""), node.get("dataType").get("value").toString().replace("\"",""));
             };
             jsonNode.get("results").get("bindings").forEach(data);
+            fieldsMap.put("linearId","UniqueIdentifier");
             return fieldsMap;
         }
 
@@ -188,9 +343,7 @@ public class QueryDB {
         }
     }
 
-    public static void getFlow() {
 
-    }
 
     public static List<CommandConstraints> getContractConditions(List<CommandConstraints> commandsWithConstraints) throws Exception{
 
