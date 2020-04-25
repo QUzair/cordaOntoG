@@ -15,9 +15,7 @@ import java.util.*;
 import static com.github.javaparser.ast.Modifier.Keyword.*;
 import static com.github.javaparser.ast.Modifier.Keyword.PUBLIC;
 
-
 public class StateCompilation {
-
     public static void main(String[] args) throws Exception {
 
         /*
@@ -39,7 +37,7 @@ public class StateCompilation {
         // Creating new Compilation Unit
         CompilationUnit compilationUnit = new CompilationUnit();
         generateStateImports(compilationUnit);
-        compilationUnit.setPackageDeclaration("com.contracts");
+        compilationUnit.setPackageDeclaration("com.template.states");
 
         // Defining State Name
         ClassOrInterfaceDeclaration classDeclaration = generateStateClass(compilationUnit, stateName, contractName);
@@ -197,7 +195,7 @@ public class StateCompilation {
         Object[] keys = fieldsMap.keySet().toArray();
         BinaryExpr expr_curr = new BinaryExpr().setOperator(BinaryExpr.Operator.AND);
         BinaryExpr expr_next = new BinaryExpr().setOperator(BinaryExpr.Operator.AND);
-        bStmt.addStatement(expr_curr);
+        bStmt.addStatement(new ReturnStmt().setExpression(expr_curr));
         String fieldName;
 
         for (int i=0;i<fieldsMap.size()-2;i++) {
@@ -218,6 +216,7 @@ public class StateCompilation {
                 .addModifier(PUBLIC)
                 .addParameter(new Parameter().setVarArgs(false).setName("obj").setType(new ClassOrInterfaceType().setName("Object")))
                 .addAnnotation("Override");
+
 
         cd.addMember(md);
 

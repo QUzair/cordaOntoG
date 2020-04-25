@@ -1,4 +1,4 @@
-package com.IssueFlow;
+package com.template.flows;
 
 import co.paralleluniverse.fibers.Suspendable;
 import com.google.common.collect.ImmutableList;
@@ -22,20 +22,20 @@ public class IssueFlow {
     @StartableByRPC
     public static class Initiator extends IOUBaseFlow {
 
-        public Initiator(Amount<Currency> amount, Party borrower, Party lender, String externalId) {
+        public Initiator(Amount<Currency> amount, Party borrower, String externalId, Party lender) {
             this.amount = amount;
             this.borrower = borrower;
-            this.lender = lender;
             this.externalId = externalId;
+            this.lender = lender;
         }
 
         private final Amount<Currency> amount;
 
         private final Party borrower;
 
-        private final Party lender;
-
         private final String externalId;
+
+        private final Party lender;
 
         private final Step INITIALISING = new Step("Performing Initial Steps.");
 
@@ -72,7 +72,7 @@ public class IssueFlow {
             progressTracker.setCurrentStep(INITIALISING);
             final IOUState newState = new IOUState(amount, borrower, lender, new UniqueIdentifier(externalId));
             final List<PublicKey> requiredSigners = newState.getParticipantKeys();
-            final FlowSession otherFlow = initiateFlow(lender);
+            final FlowSession otherFlow = initiateFlow(borrower);
             final PublicKey ourSigningKey = getOurIdentity().getOwningKey();
             progressTracker.setCurrentStep(BUILDING);
             final TransactionBuilder utx = new TransactionBuilder(getFirstNotary()).addCommand(new IOUContract.Commands.Issue(), requiredSigners).setTimeWindow(getServiceHub().getClock().instant(), Duration.ofMinutes(5)).addOutputState(newState, IOUContract.ID);

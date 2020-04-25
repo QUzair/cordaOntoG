@@ -5,6 +5,7 @@ import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.*;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
+import com.github.javaparser.ast.type.UnknownType;
 import com.github.javaparser.ast.type.VoidType;
 
 
@@ -31,12 +32,12 @@ public class ContractCompilation {
 
         //-------------FETCHING----------------------//
         //Creating an array of commands from tripleStore
+        String packageName = "com.template.contracts";
         TransactionProperties tx = new TransactionProperties();
         List<CommandConstraints> commandConstraints = QueryDB.getContractConditionsInitiator();
         StateAndContract stateContract = QueryDB.getStateName();
         String stateName = stateContract.stateName;
         String contractName = stateContract.contractName;
-        String packageName = "com.template.IOUContract";
         List<String> commands = QueryDB.getCommands();
 
         //-------------GENERATING----------------------//
@@ -44,13 +45,13 @@ public class ContractCompilation {
         // Creating new Compilation Unit
         CompilationUnit compilationUnit = new CompilationUnit();
         generateStateImports(compilationUnit);
-        compilationUnit.setPackageDeclaration("com.contracts");
+        compilationUnit.setPackageDeclaration(packageName);
 
         //Defining Contract Class
         ClassOrInterfaceDeclaration classDeclaration = generateContractClass(compilationUnit, contractName);
 
         //Defining ID
-        generateContractIdField(classDeclaration, packageName);
+        generateContractIdField(classDeclaration, packageName,contractName);
 
         //Declaring Commands Interface
         generateCommandsInterface(classDeclaration, commands);
@@ -87,7 +88,7 @@ public class ContractCompilation {
                     .setExpression(methodCallExpr);
             reqMethod.addArgument(unaryExpr);
              return expressionStmt.setExpression(reqMethod);
-        } else if(constraint.operator.equals(BinaryExpr.Operator.EQUALS)) {
+        } else if(constraint.operator.equals(BinaryExpr.Operator.EQUALS) && constraint.rightInt==null) {
             MethodCallExpr methodCallExpr = StaticJavaParser.parseExpression(String.format("%s.equals(%s)",constraint.left,((constraint.right!=null)?constraint.right:(constraint.rightInt!=null)?constraint.rightInt:constraint.rightStr)));
             reqMethod.addArgument(methodCallExpr);
             return expressionStmt.setExpression(reqMethod);
@@ -101,14 +102,6 @@ public class ContractCompilation {
         }
     }
 
-
-
-    public static ExpressionStmt generateConstraintStatements(ContractCondition constraint, boolean empty) {
-        return new ExpressionStmt().setExpression(new MethodCallExpr().setName("using").setScope(new NameExpr("req"))
-                .addArgument(new StringLiteralExpr(constraint.description))
-                .addArgument(new UnaryExpr().setOperator(UnaryExpr.Operator.LOGICAL_COMPLEMENT).setExpression(new MethodCallExpr("isEmpty").setScope(new NameExpr("acceptableCash"))))
-        );
-    }
 
     public static void generateVerifyCommands(ClassOrInterfaceDeclaration cd, String command, List<ContractCondition> descriptions, List<ExpressionStmt> baseVariables) {
         String commandFn = "verify" + command.substring(0, 1).toUpperCase() + command.substring(1);
@@ -131,9 +124,8 @@ public class ContractCompilation {
 
         lambdaExpr
                 .setEnclosingParameters(false)
-                .addParameter(new Parameter().setName("req").setVarArgs(false))
+                .addParameter(new Parameter().setName("req").setVarArgs(false).setType(new UnknownType()))
                 .setBody(lambdaBlockStmt);
-
 
         methodCallExpr
                 .setName("requireThat")
@@ -294,8 +286,8 @@ public class ContractCompilation {
         commandsInterface.addMember(comType);
     }
 
-    static void generateContractIdField(ClassOrInterfaceDeclaration cd, String packageName) {
-        cd.addField("String", "ID", PRIVATE, FINAL, STATIC).getVariable(0).setInitializer(new StringLiteralExpr(packageName));
+    static void generateContractIdField(ClassOrInterfaceDeclaration cd, String packageName, String contractName) {
+        cd.addField("String", "ID", PUBLIC, FINAL, STATIC).getVariable(0).setInitializer(new StringLiteralExpr(packageName+"."+contractName));
     }
 
     static ClassOrInterfaceDeclaration generateContractClass(CompilationUnit cu, String contractName) {

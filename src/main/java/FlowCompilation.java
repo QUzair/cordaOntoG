@@ -24,7 +24,6 @@ public class FlowCompilation {
 
     static void createNewFlowClass(FlowModel flow) throws IOException {
 
-
         //-------------FETCHING----------------------//
 
         String appName = QueryDB.getAppName();
@@ -35,7 +34,7 @@ public class FlowCompilation {
 
         // Generating Flow class
         CompilationUnit compilationUnit = new CompilationUnit();
-        compilationUnit.setPackageDeclaration("com." + flowName);
+        compilationUnit.setPackageDeclaration("com.template.flows");
 
         // Import Libraries
         generateStateImports(compilationUnit);
@@ -109,7 +108,7 @@ public class FlowCompilation {
         List<VariableDeclarationExpr> allNewStates = new ArrayList<>();
         for(NewState newState: flow.newStates) {
             String params = newState.params.stream().collect(Collectors.joining(","));
-            VariableDeclarationExpr newVar = StaticJavaParser.parseVariableDeclarationExpr(String.format("final %s newState = new %s(%s,new UniqueIdentifier(externalId))", newState.stateName, newState.stateName, params));
+            VariableDeclarationExpr newVar = StaticJavaParser.parseVariableDeclarationExpr(String.format("final %s newState = new %s(%s)", newState.stateName, newState.stateName, params));
             allNewStates.add(newVar);
         }
 

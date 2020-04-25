@@ -11,14 +11,14 @@ public class ContractCondition {
     StringLiteralExpr rightStr;
     String description;
 
-    public ContractCondition(String description,MethodCallExpr left,  BinaryExpr.Operator operator, MethodCallExpr right) {
+    public ContractCondition(String description, MethodCallExpr left,  BinaryExpr.Operator operator, MethodCallExpr right) {
         this.operator = operator;
         this.left = left;
         this.right = right;
         this.description = description;
     }
 
-    public ContractCondition(String description,MethodCallExpr left,  BinaryExpr.Operator operator, IntegerLiteralExpr right) {
+    public ContractCondition(String description, MethodCallExpr left,  BinaryExpr.Operator operator, IntegerLiteralExpr right) {
         this.operator = operator;
         this.left = left;
         this.rightInt = right;

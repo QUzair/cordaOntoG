@@ -109,7 +109,7 @@ public class BaseFlowCompilation {
                 .addExtendedType(new ClassOrInterfaceType().setName("SignTransactionFlow"))
                 .addModifier(Modifier.Keyword.STATIC)
                 .addMember(new ConstructorDeclaration()
-                        .setBody(new BlockStmt().addStatement(new ExplicitConstructorInvocationStmt().setThis(false).addArgument(new NameExpr("otherFLow")).addArgument(new NameExpr("progressTracker"))))
+                        .setBody(new BlockStmt().addStatement(new ExplicitConstructorInvocationStmt().setThis(false).addArgument(new NameExpr("otherFlow")).addArgument(new NameExpr("progressTracker"))))
                         .setName("SignTxFlowNoChecking")
                         .addParameter(new Parameter().setVarArgs(false).setName("otherFlow").setType(new ClassOrInterfaceType().setName("FlowSession")))
                         .addParameter(new Parameter().setVarArgs(false).setName("progressTracker").setType(new ClassOrInterfaceType().setName("ProgressTracker")))

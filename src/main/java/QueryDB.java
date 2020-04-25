@@ -32,7 +32,7 @@ public class QueryDB {
             "                :properties/rdf:rest*/rdf:first ?prop .\n" +
             "    ?prop :propertyName ?propertyName ;\n" +
             "          :datatype ?dataType .\n" +
-            "}";
+            "} ORDER BY ?prop";
 
     public static String commandsQuery = "query=PREFIX :<http://cordaO.org/> SELECT ?name WHERE {\n" +
             "    ?command a :Command ;\n" +
@@ -135,17 +135,17 @@ public class QueryDB {
             "                }\n" +
             "}";
 
-    public static String outputStateParamsQuery = "query=PREFIX :<http://cordaO.org/> SELECT ?flowName ?propName ?stateName{ \n" +
-            "                ?flow a :Flow; \n" +
-            "                    :flowName ?flowName ; \n" +
-            "                    :hasTransaction ?tx . \n" +
-            "                    ?tx :hasOutputState ?outputState .  \n" +
-            "                    ?outputState a :NewState ;\n" +
-            "                                 :stateClass ?state .\n" +
-            "                    ?state :stateName ?stateName .\n" +
-            "                    ?outputState :newProperties/rdf:rest*/rdf:first ?prop . \n" +
-            "                ?prop :flowPropertyName ?propName . \n" +
-            "}";
+    public static String outputStateParamsQuery = "query=PREFIX :<http://cordaO.org/> SELECT DISTINCT ?flowName ?prop ?propName ?stateName{  \n" +
+            "    ?flow a :Flow;  \n" +
+            "        :flowName ?flowName ;  \n" +
+            "        :hasTransaction ?tx .  \n" +
+            "        ?tx :hasOutputState ?outputState .   \n" +
+            "        ?outputState a :NewState ; \n" +
+            "                        :stateClass ?state . \n" +
+            "        ?state :stateName ?stateName . \n" +
+            "        ?outputState :newProperties/rdf:rest*/rdf:first ?prop .  \n" +
+            "    ?prop :flowPropertyName ?propName .  \n" +
+            "} ORDER BY ?prop";
 
     public static String inputStateIDQuery = "query=PREFIX :<http://cordaO.org/> SELECT ?flowName ?stateName ?propName {\n" +
             "    ?flow a :Flow;\n" +
@@ -173,9 +173,9 @@ public class QueryDB {
         JsonNode jsonNode = createConnection(dbUrl, outputStateParamsQuery);
         List<String> params = new ArrayList<>();
         Consumer<JsonNode> data = (JsonNode node) -> {
-            String propName = (getNodeParam(node, "propName", false));
-            String flowName = (getNodeParam(node, "flowName", false));
-            String stateName = (getNodeParam(node, "stateName", false));
+            String propName = getNodeParam(node, "propName", false);
+            String flowName = getNodeParam(node, "flowName", false);
+            String stateName = getNodeParam(node, "stateName", false);
             for (int i = 0; i < flows.size(); i++) {
                 if (flows.get(i).flowName.equals(flowName)) {
                     if (flows.get(i).newStates.stream().filter(it -> it.stateName.contains(stateName)).collect(Collectors.toList()).size() == 0) {
@@ -183,6 +183,7 @@ public class QueryDB {
                     }
                     for (int j = 0; j < flows.get(i).newStates.size(); j++) {
                         if(flows.get(i).newStates.get(j).stateName.equals(stateName)) {
+                            propName =  propName.contains("Id") ? String.format("new UniqueIdentifier(%s)",propName) : propName;
                             flows.get(i).newStates.get(j).params.add(propName);
                         }
                     }
@@ -196,9 +197,9 @@ public class QueryDB {
         JsonNode jsonNode = createConnection(dbUrl, inputStateIDQuery);
         List<String> params = new ArrayList<>();
         Consumer<JsonNode> data = (JsonNode node) -> {
-            String propName = (getNodeParam(node, "propName", false));
-            String flowName = (getNodeParam(node, "flowName", false));
-            String stateName = (getNodeParam(node, "stateName", false));
+            String propName = getNodeParam(node, "propName", false);
+            String flowName = getNodeParam(node, "flowName", false);
+            String stateName = getNodeParam(node, "stateName", false);
             for (int i = 0; i < flows.size(); i++) {
                 if (flows.get(i).flowName.equals(flowName)) {
                     flows.get(i).retrieveStates.add(new RetrieveState(propName,stateName));
@@ -214,9 +215,9 @@ public class QueryDB {
         List<FlowModel> flows = new ArrayList<FlowModel>();
 
         Consumer<JsonNode> data = (JsonNode node) -> {
-            String flowName = (getNodeParam(node, "flowName",false));
-            String flowPropName = (getNodeParam(node, "flowPropName",false));
-            String dataType = (getNodeParam(node, "datatype",false));
+            String flowName = getNodeParam(node, "flowName",false);
+            String flowPropName = getNodeParam(node, "flowPropName",false);
+            String dataType = getNodeParam(node, "datatype",false);
             if(flows.stream().filter(it -> it.flowName.contains(flowName)).collect(Collectors.toList()).size()==0) {
                 flows.add(new FlowModel(flowName));
             }
@@ -236,16 +237,16 @@ public class QueryDB {
     public static void getTransactionProperties(List<FlowModel> flows) throws IOException {
         JsonNode jsonNode = createConnection(dbUrl,transactionPropertiesQuery);
         Consumer<JsonNode> data = (JsonNode node) -> {
-            String flowName = (getNodeParam(node, "flowName",false));
-            String commandName = (getNodeParam(node, "commandName",false));
-            String inputStateURI = (getNodeParam(node, "inputState",true));
-            String inputStateType = (getNodeParam(node, "inputStateType",false));
-            String outputStateURI = (getNodeParam(node, "outputState",true));
-            String outputStateType = (getNodeParam(node, "outputStateType",false));
-            String payee = (getNodeParam(node, "payee",false));
-            String amountVar = (getNodeParam(node, "amountVar",false));
-            String contractName = (getNodeParam(node, "contractName",false));
-            String otherParty = (getNodeParam(node, "otherParty",false));
+            String flowName = getNodeParam(node, "flowName",false);
+            String commandName = getNodeParam(node, "commandName",false);
+            String inputStateURI = getNodeParam(node, "inputState",true);
+            String inputStateType = getNodeParam(node, "inputStateType",false);
+            String outputStateURI = getNodeParam(node, "outputState",true);
+            String outputStateType = getNodeParam(node, "outputStateType",false);
+            String payee = getNodeParam(node, "payee",false);
+            String amountVar = getNodeParam(node, "amountVar",false);
+            String contractName = getNodeParam(node, "contractName",false);
+            String otherParty = getNodeParam(node, "otherParty",false);
 
             for (int i = 0; i < flows.size(); i++) {
                 if(flows.get(i).flowName.equals(flowName)) {
@@ -352,8 +353,6 @@ public class QueryDB {
 
         Consumer<JsonNode> data = (JsonNode node) -> {
             MethodCallExpr lstateProp, rstateProp;
-            String ldatatype = getNodeParam(node,"ldatatype",false);
-            String rdatatype =  getNodeParam(node,"rdatatype",false);
             String lName = getNodeParam(node,"lName",false);
             String rName = getNodeParam(node,"rName",false);
             String rstateClass = getNodeParam(node,"rstateClass",false);
@@ -372,9 +371,10 @@ public class QueryDB {
 
             ltxType = leftType.contains("Input") ? tx.TX_INPUT:tx.TX_OUTPUT;
             rtxType = rightType.contains("Input") ? tx.TX_INPUT:tx.TX_OUTPUT;
+
             try {
-                lstateProp = (lName.equals("AcceptableCash")) ? tx.getAcceptableCashQuantity(): tx.getStateProperty(lName, lstateClass,ltxType, ldatatype.contains("Amount<Currency>")?true:false);
-                rstateProp = tx.getStateProperty(rName, rstateClass,rtxType, rdatatype.contains("Amount<Currency>")?true:false);
+                lstateProp = (lName.equals("AcceptableCash")) ? tx.getAcceptableCashQuantity(): tx.getStateProperty(lName, lstateClass,ltxType);
+                rstateProp = tx.getStateProperty(rName, rstateClass,rtxType);
             } catch (Exception e) {
                 lstateProp = null;
                 rstateProp = null;
@@ -386,11 +386,17 @@ public class QueryDB {
                 for (int i = 0; i < commandsWithConstraints.size(); i++) {
                     if(commandsWithConstraints.get(i).commandName.equals(commandName)) {
                         commandsWithConstraints.get(i).constraints.add(contractCondition);
-                        if(lName.contains("Cash")) {
+                        if(lstateClass.contains("Cash")) {
+                            commandsWithConstraints.get(i).variables.add(tx.singleStateType(rstateClass, tx.TX_OUTPUT));
                             commandsWithConstraints.get(i).variables.add(tx.getCashFromOutput());
                             commandsWithConstraints.get(i).variables.add(tx.acceptableCashFromPayee( payee, payeeState));
                         }
-                        if(!lName.contains("Cash")) commandsWithConstraints.get(i).variables.add(tx.singleStateType(lstateClass, ltxType));
+                        if(!lstateClass.contains("Cash")) {
+                            commandsWithConstraints.get(i).variables.add(tx.singleStateType(lstateClass, ltxType));
+                        }
+                        if(!rstateClass.contains("Cash")) {
+                            commandsWithConstraints.get(i).variables.add(tx.singleStateType(rstateClass, rtxType));
+                        }
                     }
                 }
             }
@@ -414,26 +420,23 @@ public class QueryDB {
 
             Consumer<JsonNode> data = (JsonNode node) -> {
                 MethodCallExpr stateProp = new MethodCallExpr();;
-                String ldatatype = node.get("ldatatype").get("value").toString().replace("\"","");
-                String lName = node.get("lName").get("value").toString().replace("\"","");
-                String left = node.get("left").get("value").toString().replace("\"","").replace("http://cordaO.org/","");
-                String binOperator = node.get("bin").get("value").toString().replace("\"","").replace("http://cordaO.org/","");
-                String right = node.get("right").get("value").toString().replace("\"","");
-                String leftType = node.get("leftType").get("value").toString().replace("\"","");
-                String desc = node.get("desc").get("value").toString().replace("\"","");
-                String rightType = node.get("rightType").get("value").toString().replace("\"","");
-                String commandName = node.get("commandName").get("value").toString().replace("\"","");
-                String lstateClass = "";
+                String binOperator = getNodeParam(node,"lName",true);
+                String lName = getNodeParam(node,"lName",false);
+                String left = getNodeParam(node,"left",true);
+                String right = getNodeParam(node,"right",false);
+                String leftType = getNodeParam(node,"leftType",false);
+                String rightType = getNodeParam(node,"rightType",false);
+                String desc = getNodeParam(node,"desc",false);
+                String commandName = getNodeParam(node,"commandName",false);
+                String lstateClass = getNodeParam(node,"lstateClass",false);
+                String ldatatype = getNodeParam(node,"ldatatype",false);
                 String txType = "";
-                try {
-                    lstateClass = node.get("lstateClass").get("value").toString().replace("\"","");
-                } catch (Exception e) {
-                }
 
                 if(!lstateClass.isEmpty()) {
                     try {
                         txType = leftType.contains("Input") ? tx.TX_INPUT:tx.TX_OUTPUT;
-                        stateProp = tx.getStateProperty(lName, lstateClass,txType, ldatatype.contains("Amount<Currency>")?true:false);
+                        if(ldatatype.contains("Amount<Currency>")) stateProp = tx.getStateProperty(lName, lstateClass,txType,true);
+                        else stateProp = tx.getStateProperty(lName, lstateClass,txType);
 
                     } catch (Exception e) {
                         stateProp = new MethodCallExpr();
@@ -446,7 +449,7 @@ public class QueryDB {
                     stateProp = tx.listStatesIO(listIO[1],listIO[0].contains("Input") ? tx.TX_INPUT:tx.TX_OUTPUT);
                 }
                 BinaryExpr.Operator operator = getOperator(binOperator);
-                ContractCondition contractCondition = rightType.contains("integer")? new ContractCondition(desc,stateProp,operator, new IntegerLiteralExpr(right)):new ContractCondition(desc,stateProp,operator, new StringLiteralExpr(right));
+                ContractCondition contractCondition = rightType.contains("integer") ? new ContractCondition(desc,stateProp,operator, new IntegerLiteralExpr(right)):new ContractCondition(desc,stateProp,operator, new StringLiteralExpr(right));
                 for (int i = 0; i < commandsWithConstraints.size(); i++) {
                     if(commandsWithConstraints.get(i).commandName.equals(commandName)) {
                         commandsWithConstraints.get(i).constraints.add(contractCondition);
@@ -459,6 +462,7 @@ public class QueryDB {
                 }
             };
             jsonNode.get("results").get("bindings").forEach(data);
+
             List<ExpressionStmt> listWithoutDuplicates;
             for (int i = 0; i < commandsWithConstraints.size(); i++) {
                 listWithoutDuplicates = commandsWithConstraints.get(i).variables.stream().distinct().collect(Collectors.toList());

@@ -1,4 +1,4 @@
-package com.contracts;
+package com.template.states;
 
 import net.corda.core.contracts.Amount;
 import net.corda.core.contracts.BelongsToContract;
@@ -63,7 +63,7 @@ public class IOUState implements LinearState {
             return false;
         }
         IOUState other = (IOUState) obj;
-        linearId.equals(other.getLinearId()) && lender.equals(other.getLender()) && borrower.equals(other.getBorrower()) && value.equals(other.getValue());
+        return linearId.equals(other.getLinearId()) && lender.equals(other.getLender()) && borrower.equals(other.getBorrower()) && value.equals(other.getValue());
     }
 
     @Override

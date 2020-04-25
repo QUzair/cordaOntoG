@@ -34,7 +34,7 @@ public class TransactionProperties {
                                         .setExpression(
                                                 new MethodCallExpr()
                                                         .setName("get")
-                                                        .setScope(new MethodCallExpr("get"+stateType+"States").setScope(new NameExpr("tx")))
+                                                        .setScope(new MethodCallExpr(camelCase("get",stateType)+"States").setScope(new NameExpr("tx")))
                                                         .addArgument(new IntegerLiteralExpr("0"))
                                         )
                                         .setType(new ClassOrInterfaceType().setName(stateName))
@@ -115,11 +115,11 @@ public class TransactionProperties {
     }
 
     public static MethodCallExpr getAcceptableCashQuantity() {
-        return StaticJavaParser.parseExpression("withoutIssuer(sumCash(acceptableCash)).getQuantity()");
+        return StaticJavaParser.parseExpression("withoutIssuer(sumCash(acceptableCash))");
     }
 
     public static ExpressionStmt getListInputOutputsOfState(String stateName,String inputOutput) {
-        VariableDeclarationExpr listIOStates = StaticJavaParser.parseVariableDeclarationExpr(String.format("List<%s> %ss = tx.%ssOfType(%s.class)",stateName,camelCase(stateName,inputOutput),inputOutput,stateName));
+        VariableDeclarationExpr listIOStates = StaticJavaParser.parseVariableDeclarationExpr(String.format("List<%s> %ss = tx.%ssOfType(%s.class)",stateName,camelCase(stateName,inputOutput),inputOutput.toLowerCase(),stateName));
         return new ExpressionStmt().setExpression(listIOStates);
     }
 

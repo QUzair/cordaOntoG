@@ -36,7 +36,7 @@ abstract class IOUBaseFlow extends FlowLogic<SignedTransaction> {
     static class SignTxFlowNoChecking extends SignTransactionFlow {
 
         SignTxFlowNoChecking(FlowSession otherFlow, ProgressTracker progressTracker) {
-            super(otherFLow, progressTracker);
+            super(otherFlow, progressTracker);
         }
 
         @Override
