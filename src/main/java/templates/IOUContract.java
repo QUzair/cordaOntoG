@@ -6,6 +6,7 @@ import net.corda.core.transactions.LedgerTransaction;
 import net.corda.finance.contracts.asset.Cash;
 
 import java.security.PublicKey;
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -57,6 +58,7 @@ public class IOUContract implements Contract {
     private void verifyIssue(LedgerTransaction tx, Set<PublicKey> signers) {
         requireThat(req -> {
             IOUState obligation = (IOUState) tx.getOutputStates().get(0);
+            req.using(String.format("Issue Date must be before 2019-10-10. But is %s",obligation.getDateOfIssue()), obligation.getDateOfIssue().isBefore(LocalDate.parse("2019-10-10")));
             req.using("No inputs should be consumed when issuing an obligation.", tx.getInputStates().size()==0);
             req.using("Only one obligation state should be created when issuing an obligation.",tx.getOutputStates().size() == 1);
             req.using("A newly issued obligation must have a positive amount.",obligation.getValue().getQuantity() > 0);

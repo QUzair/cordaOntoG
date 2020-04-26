@@ -82,6 +82,15 @@ root(Type=CompilationUnit):
             isAsterisk: "false"
             isStatic: "false"
             name(Type=Name): 
+                identifier: "LocalDate"
+                qualifier(Type=Name): 
+                    identifier: "time"
+                    qualifier(Type=Name): 
+                        identifier: "java"
+        - import(Type=ImportDeclaration): 
+            isAsterisk: "false"
+            isStatic: "false"
+            name(Type=Name): 
                 identifier: "HashSet"
                 qualifier(Type=Name): 
                     identifier: "util"
@@ -507,6 +516,48 @@ root(Type=CompilationUnit):
                                                                     type(Type=ClassOrInterfaceType): 
                                                                         name(Type=SimpleName): 
                                                                             identifier: "IOUState"
+                                                    - statement(Type=ExpressionStmt): 
+                                                        expression(Type=MethodCallExpr): 
+                                                            name(Type=SimpleName): 
+                                                                identifier: "using"
+                                                            scope(Type=NameExpr): 
+                                                                name(Type=SimpleName): 
+                                                                    identifier: "req"
+                                                            arguments: 
+                                                                - argument(Type=MethodCallExpr): 
+                                                                    name(Type=SimpleName): 
+                                                                        identifier: "format"
+                                                                    scope(Type=NameExpr): 
+                                                                        name(Type=SimpleName): 
+                                                                            identifier: "String"
+                                                                    arguments: 
+                                                                        - argument(Type=StringLiteralExpr): 
+                                                                            value: "Issue Date must be before 2019-10-10. But is %s"
+                                                                        - argument(Type=MethodCallExpr): 
+                                                                            name(Type=SimpleName): 
+                                                                                identifier: "getDateOfIssue"
+                                                                            scope(Type=NameExpr): 
+                                                                                name(Type=SimpleName): 
+                                                                                    identifier: "obligation"
+                                                                - argument(Type=MethodCallExpr): 
+                                                                    name(Type=SimpleName): 
+                                                                        identifier: "isBefore"
+                                                                    scope(Type=MethodCallExpr): 
+                                                                        name(Type=SimpleName): 
+                                                                            identifier: "getDateOfIssue"
+                                                                        scope(Type=NameExpr): 
+                                                                            name(Type=SimpleName): 
+                                                                                identifier: "obligation"
+                                                                    arguments: 
+                                                                        - argument(Type=MethodCallExpr): 
+                                                                            name(Type=SimpleName): 
+                                                                                identifier: "parse"
+                                                                            scope(Type=NameExpr): 
+                                                                                name(Type=SimpleName): 
+                                                                                    identifier: "LocalDate"
+                                                                            arguments: 
+                                                                                - argument(Type=StringLiteralExpr): 
+                                                                                    value: "2019-10-10"
                                                     - statement(Type=ExpressionStmt): 
                                                         expression(Type=MethodCallExpr): 
                                                             name(Type=SimpleName): 

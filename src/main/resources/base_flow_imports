@@ -11,3 +11,4 @@ net.corda.core.node.services.vault.QueryCriteria
 net.corda.core.transactions.SignedTransaction
 net.corda.core.utilities.ProgressTracker
 java.util.List
+java.time.LocalDate

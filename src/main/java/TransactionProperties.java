@@ -91,7 +91,7 @@ public class TransactionProperties {
                                                 .setBody(new ExpressionStmt()
                                                         .setExpression(new MethodCallExpr("equals")
                                                                 .setScope(new MethodCallExpr("getOwner").setScope(new NameExpr("it")))
-                                                                .addArgument(new MethodCallExpr(camelCase("get", payee)).setScope(new NameExpr(camelCase(stateName, TX_OUTPUT))))
+                                                                .addArgument(new MethodCallExpr(camelCase("get", payee)).setScope(new NameExpr(camelCase(stateName, TX_INPUT))))
                                                         )
                                                 )
                                                 .addParameter(new Parameter().setVarArgs(false).setName("it").setType(new UnknownType()))

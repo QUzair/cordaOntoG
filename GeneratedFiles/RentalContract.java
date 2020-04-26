@@ -1,5 +1,6 @@
-package com.template.contracts;
+package com.template.contract;
 
+import com.template.states.Rental;
 import com.google.common.collect.Sets;
 import net.corda.core.contracts.*;
 import net.corda.core.identity.AbstractParty;
@@ -16,10 +17,11 @@ import static net.corda.core.contracts.ContractsDSL.requireSingleCommand;
 import static net.corda.core.contracts.ContractsDSL.requireThat;
 import static net.corda.core.contracts.Structures.withoutIssuer;
 import static net.corda.finance.contracts.utils.StateSumming.sumCash;
+import java.time.LocalDate;
 
-public class PatientContract implements Contract {
+public class RentalContract implements Contract {
 
-    public final static String ID = "com.template.contracts.PatientContract";
+    public final static String ID = "com.template.contract.RentalContract";
 
     public interface Commands extends CommandData {
 
@@ -39,19 +41,17 @@ public class PatientContract implements Contract {
         }
     }
 
-    private Set<PublicKey> keysFromParticipants(Patient patient) {
-        return patient.getParticipants().stream().map(AbstractParty::getOwningKey).collect(toSet());
+    private Set<PublicKey> keysFromParticipants(Rental rental) {
+        return rental.getParticipants().stream().map(AbstractParty::getOwningKey).collect(toSet());
     }
 
     private void verifyRegister(LedgerTransaction tx, Set<PublicKey> signers) {
         requireThat(req -> {
-            Patient patientOutput = (Patient) tx.getOutputStates().get(0);
-            req.using("SNQ must have been conducted after February 1st 2010.", patientOutput.getVisitDate().isAfter(LocalDate.parse("2010-02-01")));
-            req.using("SNQ must have been conducted before February 15th 2010.", patientOutput.getVisitDate().isBefore(LocalDate.parse("2010-02-15")));
-            req.using("Patient Age should be greater than or equal to 6.", patientOutput.getAge() >= 6);
-            req.using("SNQ Score must be greater than or equals to 1.", patientOutput.getSnqscore() >= 1);
-            req.using("Gender Must be Female.", patientOutput.getGender().equals("Female"));
-            req.using("Should be patients first Visit.", patientOutput.getVisit() == 1);
+            Rental rentalOutput = (Rental) tx.getOutputStates().get(0);
+            req.using("License Status should be valid.", rentalOutput.getLicenseStatus().equals("valid"));
+            req.using("Record Status must be clean.", rentalOutput.getRecordStatus().equals("clean"));
+            req.using("Age of rentee must be greater than 25.", rentalOutput.getAge() > 25);
+            req.using("Card Company should be Visa.", rentalOutput.getCardCompany().equals("Visa"));
             return null;
         });
     }

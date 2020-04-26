@@ -16,7 +16,7 @@ import static com.github.javaparser.ast.Modifier.Keyword.*;
 
 public class ContractCompilation {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(Map<String, String> args) throws Exception {
 
 
         /*
@@ -32,7 +32,7 @@ public class ContractCompilation {
 
         //-------------FETCHING----------------------//
         //Creating an array of commands from tripleStore
-        String packageName = "com.template.contracts";
+        String packageName = args.get("contractPackage");
         TransactionProperties tx = new TransactionProperties();
         List<CommandConstraints> commandConstraints = QueryDB.getContractConditionsInitiator();
         StateAndContract stateContract = QueryDB.getStateName();
@@ -44,6 +44,7 @@ public class ContractCompilation {
 
         // Creating new Compilation Unit
         CompilationUnit compilationUnit = new CompilationUnit();
+        compilationUnit.addImport(args.get("statePackage")+"."+stateName);
         generateStateImports(compilationUnit);
         compilationUnit.setPackageDeclaration(packageName);
 
@@ -69,7 +70,7 @@ public class ContractCompilation {
 
         //Output Generated File
         System.out.println(compilationUnit.toString());
-        createNewContractClassFile(compilationUnit.toString());
+        createNewContractClassFile(compilationUnit.toString(),contractName);
     }
 
     public static ExpressionStmt generateConstraintStatements(ContractCondition constraint) {
@@ -80,8 +81,13 @@ public class ContractCompilation {
         MethodCallExpr reqMethod = new MethodCallExpr("using")
                 .setScope(new NameExpr("req"))
                 .addArgument(new StringLiteralExpr(constraint.description));
-
-        if(constraint.operator.equals(BinaryExpr.Operator.NOT_EQUALS)) {
+        if(constraint.right!=null && constraint.right.toString().contains("Date")) {
+            String dateOperand =  (constraint.operator == BinaryExpr.Operator.LESS) ? "isBefore":"isAfter";
+            MethodCallExpr methodCallExpr = StaticJavaParser.parseExpression(String.format("%s.%s(%s)",constraint.left, dateOperand,((constraint.right!=null)?constraint.right:(constraint.rightInt!=null)?constraint.rightInt:constraint.rightStr)));
+            reqMethod.addArgument(methodCallExpr);
+            return expressionStmt.setExpression(reqMethod);
+        }
+        else if(constraint.operator.equals(BinaryExpr.Operator.NOT_EQUALS)) {
             MethodCallExpr methodCallExpr = StaticJavaParser.parseExpression(String.format("%s.equals(%s)",((constraint.right!=null)?constraint.right:(constraint.rightInt!=null)?constraint.rightInt:constraint.rightStr),constraint.left));
              unaryExpr = new UnaryExpr()
                     .setOperator(UnaryExpr.Operator.LOGICAL_COMPLEMENT)
@@ -144,8 +150,8 @@ public class ContractCompilation {
         cd.addMember(md);
     }
 
-    public static void createNewContractClassFile(String newFile) throws IOException {
-        BufferedWriter writer = new BufferedWriter(new FileWriter("./GeneratedFiles/ContractClass.java"));
+    public static void createNewContractClassFile(String newFile, String contractName) throws IOException {
+        BufferedWriter writer = new BufferedWriter(new FileWriter(String.format("./GeneratedFiles/%s.java",contractName)));
         writer.write(newFile);
         writer.close();
     }

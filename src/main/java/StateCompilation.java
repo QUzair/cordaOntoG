@@ -16,7 +16,8 @@ import static com.github.javaparser.ast.Modifier.Keyword.*;
 import static com.github.javaparser.ast.Modifier.Keyword.PUBLIC;
 
 public class StateCompilation {
-    public static void main(String[] args) throws Exception {
+
+    public static void main(Map<String, String> args) throws Exception {
 
         /*
         Requires:
@@ -31,13 +32,15 @@ public class StateCompilation {
         StateAndContract stateAndContract =  QueryDB.getStateName();
         String stateName = stateAndContract.stateName;
         String contractName = stateAndContract.contractName;
+        String packageName = args.get("statePackage");
 
         //-------------GENERATING----------------------//
 
         // Creating new Compilation Unit
         CompilationUnit compilationUnit = new CompilationUnit();
+        compilationUnit.addImport(args.get("contractPackage")+"."+contractName);
         generateStateImports(compilationUnit);
-        compilationUnit.setPackageDeclaration("com.template.states");
+        compilationUnit.setPackageDeclaration(packageName);
 
         // Defining State Name
         ClassOrInterfaceDeclaration classDeclaration = generateStateClass(compilationUnit, stateName, contractName);
@@ -63,12 +66,12 @@ public class StateCompilation {
 
         System.out.println(compilationUnit.toString());
 
-        createNewStateClass(compilationUnit.toString());
+        createNewStateClass(compilationUnit.toString(),stateName);
 
     }
 
-    public static void createNewStateClass(String newFile) throws IOException {
-        BufferedWriter writer = new BufferedWriter(new FileWriter("./GeneratedFiles/StateClass.java"));
+    public static void createNewStateClass(String newFile, String stateName) throws IOException {
+        BufferedWriter writer = new BufferedWriter(new FileWriter(String.format("./GeneratedFiles/%s.java",stateName)));
         writer.write(newFile);
 
         writer.close();
@@ -171,8 +174,12 @@ public class StateCompilation {
         cd.addMember(md);
     }
 
-    public static MethodCallExpr methodCallExpr(String property) {
-        return new MethodCallExpr()
+    public static Expression methodCallExpr(String property,Map<String, String> fieldsMap) {
+        String datatype = fieldsMap.get(property);
+        if(datatype.equals("int")) {
+            return new BinaryExpr().setOperator(BinaryExpr.Operator.EQUALS).setLeft(new NameExpr(property)).setRight(new MethodCallExpr().setName(TransactionProperties.camelCase("get",property)).setScope(new NameExpr("other")));
+        }
+        else return new MethodCallExpr()
                 .setName("equals")
                 .setScope(new NameExpr(property))
                 .addArgument(new MethodCallExpr().setName(TransactionProperties.camelCase("get",property)).setScope(new NameExpr("other")));
@@ -201,12 +208,12 @@ public class StateCompilation {
         for (int i=0;i<fieldsMap.size()-2;i++) {
             fieldName = keys[i].toString();
             expr_next = new BinaryExpr().setOperator(BinaryExpr.Operator.AND);
-            expr_curr.setRight(methodCallExpr(fieldName));
+            expr_curr.setRight(methodCallExpr(fieldName,fieldsMap));
             expr_curr.setLeft(expr_next);
             expr_curr = expr_next;
         }
-        expr_next.setRight(methodCallExpr(keys[fieldsMap.size()-2].toString()));
-        expr_next.setLeft(methodCallExpr(keys[fieldsMap.size()-1].toString()));
+        expr_next.setRight(methodCallExpr(keys[fieldsMap.size()-2].toString(),fieldsMap));
+        expr_next.setLeft(methodCallExpr(keys[fieldsMap.size()-1].toString(),fieldsMap));
 
 
         MethodDeclaration md = new MethodDeclaration()

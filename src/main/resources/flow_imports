@@ -13,3 +13,4 @@ java.security.PublicKey
 java.time.Duration
 java.util.Currency
 java.util.List
+java.time.LocalDate

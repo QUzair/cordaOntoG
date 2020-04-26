@@ -1,5 +1,6 @@
 package templates;
 
+import net.bytebuddy.asm.Advice;
 import net.corda.core.contracts.Amount;
 import net.corda.core.contracts.BelongsToContract;
 import net.corda.core.contracts.LinearState;
@@ -8,6 +9,7 @@ import net.corda.core.identity.AbstractParty;
 import net.corda.core.identity.Party;
 
 import java.security.PublicKey;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Currency;
 import java.util.List;
@@ -22,23 +24,30 @@ public class IOUState implements LinearState {
     private final Party lender;
     private final Party borrower;
     private final UniqueIdentifier linearId;
+    private final LocalDate dateOfIssue;
+    private final int num;
 
 
     public IOUState(Amount<Currency> value,
                     Party lender,
                     Party borrower,
+                    LocalDate dateOfIssue,
                     UniqueIdentifier linearId
     )
     {
         this.value = value;
         this.lender = lender;
         this.borrower = borrower;
+        this.dateOfIssue = dateOfIssue;
         this.linearId = linearId;
+        this.num = 0;
     }
 
     public Amount<Currency> getValue() { return value; }
     public Party getLender() { return lender; }
     public Party getBorrower() { return borrower; }
+    public LocalDate getDateOfIssue() {return dateOfIssue;}
+    public int getNum() {return num;}
     @Override public UniqueIdentifier getLinearId() { return linearId; }
     @Override public List<AbstractParty> getParticipants() {
         return Arrays.asList(lender, borrower);
@@ -59,8 +68,9 @@ public class IOUState implements LinearState {
         }
         IOUState other = (IOUState) obj;
         return value.equals(other.getValue())
-                &&lender.equals(other.getLender())
+                && lender.equals(other.getLender())
                 && borrower.equals(other.getBorrower())
+                && num==other.getNum()
                 && linearId.equals(other.getLinearId());
     }
 

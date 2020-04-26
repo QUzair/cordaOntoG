@@ -14,6 +14,7 @@ import net.corda.core.utilities.ProgressTracker.Step;
 
 import java.security.PublicKey;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.util.Currency;
 import java.util.List;
 
@@ -65,7 +66,7 @@ public class IssueIOU {
         public SignedTransaction call() throws FlowException {
             // Step 1. Initialisation.
             progressTracker.setCurrentStep(INITIALISING);
-            final IOUState obligation = new IOUState(amount, lender, getOurIdentity(),new UniqueIdentifier(externalId));
+            final IOUState obligation = new IOUState(amount, lender, getOurIdentity(),LocalDate.now(),new UniqueIdentifier(externalId));
             final PublicKey ourSigningKey = getOurIdentity().getOwningKey();
             final FlowSession lenderFlow = initiateFlow(lender);
             final List<PublicKey> requiredSigners = obligation.getParticipantKeys();

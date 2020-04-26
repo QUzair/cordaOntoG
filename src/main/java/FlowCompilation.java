@@ -13,30 +13,36 @@ import java.util.stream.Collectors;
 import static com.github.javaparser.ast.Modifier.Keyword.*;
 
 public class FlowCompilation {
-    public static void main(String[] args) throws Exception {
+    public static void main(Map<String, String> args) throws Exception {
 
         List<FlowModel> flowProperties = QueryDB.getFlowProperties();
         for(FlowModel flow: flowProperties) {
-            createNewFlowClass(flow);
+            createNewFlowClass(flow,args);
         }
 
     }
 
-    static void createNewFlowClass(FlowModel flow) throws IOException {
+    static void createNewFlowClass(FlowModel flow,Map<String, String> args) throws IOException {
 
         //-------------FETCHING----------------------//
 
+        String packageName = args.get("flowPackage");
         String appName = QueryDB.getAppName();
         String flowName = flow.flowName;
         Map<String, String> fieldsMap = flow.properties;
         StringBuilder transactionComponents = flow.transaction;
+        StateAndContract stateContract = QueryDB.getStateName();
+        String stateName = stateContract.stateName;
+        String contractName = stateContract.contractName;
         //-------------GENERATING----------------------//
 
         // Generating Flow class
         CompilationUnit compilationUnit = new CompilationUnit();
-        compilationUnit.setPackageDeclaration("com.template.flows");
+        compilationUnit.setPackageDeclaration(packageName);
 
         // Import Libraries
+        compilationUnit.addImport(args.get("statePackage")+"."+stateName);
+        compilationUnit.addImport(args.get("contractPackage")+"."+contractName);
         generateStateImports(compilationUnit);
 
         // Defining Main Flow Class

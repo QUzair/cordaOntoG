@@ -10,3 +10,4 @@ java.util.Currency
 java.util.List
 java.util.Objects
 java.util.stream.Collectors
+java.time.LocalDate

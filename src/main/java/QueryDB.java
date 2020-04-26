@@ -2,10 +2,7 @@
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import com.github.javaparser.ast.expr.BinaryExpr;
-import com.github.javaparser.ast.expr.IntegerLiteralExpr;
-import com.github.javaparser.ast.expr.MethodCallExpr;
-import com.github.javaparser.ast.expr.StringLiteralExpr;
+import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.ExpressionStmt;
 
 import java.io.*;
@@ -18,6 +15,8 @@ import java.util.stream.Collectors;
 import static com.google.common.net.HttpHeaders.USER_AGENT;
 
 public class QueryDB {
+
+    public static String dbUrl = "http://localhost:5820/carRental/query";
 
     public static String stateNameQuery = "query=PREFIX :<http://cordaO.org/> SELECT ?stateName ?contractName WHERE { \n" +
             "               ?stateprop a :State ; \n" +
@@ -160,13 +159,9 @@ public class QueryDB {
             "        ?state :stateName ?stateName  .\n" +
             "}";
 
-    public static String dbUrl = "http://localhost:5820/iou3/query";
 
     public static void main(String[] args) throws Exception {
-//        getStateProperties();
-//        getStateName();
-//        getContractConditionsInitiator();
-        getFlowProperties();
+
     }
 
     public static void getOutputStateParams( List<FlowModel> flows) throws IOException {
@@ -387,7 +382,7 @@ public class QueryDB {
                     if(commandsWithConstraints.get(i).commandName.equals(commandName)) {
                         commandsWithConstraints.get(i).constraints.add(contractCondition);
                         if(lstateClass.contains("Cash")) {
-                            commandsWithConstraints.get(i).variables.add(tx.singleStateType(rstateClass, tx.TX_OUTPUT));
+                            commandsWithConstraints.get(i).variables.add(tx.singleStateType(rstateClass, tx.TX_INPUT));
                             commandsWithConstraints.get(i).variables.add(tx.getCashFromOutput());
                             commandsWithConstraints.get(i).variables.add(tx.acceptableCashFromPayee( payee, payeeState));
                         }
@@ -420,7 +415,7 @@ public class QueryDB {
 
             Consumer<JsonNode> data = (JsonNode node) -> {
                 MethodCallExpr stateProp = new MethodCallExpr();;
-                String binOperator = getNodeParam(node,"lName",true);
+                String binOperator = getNodeParam(node,"bin",true);
                 String lName = getNodeParam(node,"lName",false);
                 String left = getNodeParam(node,"left",true);
                 String right = getNodeParam(node,"right",false);
@@ -437,19 +432,23 @@ public class QueryDB {
                         txType = leftType.contains("Input") ? tx.TX_INPUT:tx.TX_OUTPUT;
                         if(ldatatype.contains("Amount<Currency>")) stateProp = tx.getStateProperty(lName, lstateClass,txType,true);
                         else stateProp = tx.getStateProperty(lName, lstateClass,txType);
-
                     } catch (Exception e) {
                         stateProp = new MethodCallExpr();
                         e.printStackTrace();
                     }
-                } else if(left.contains("Size")) {
+                } else if(lName.contains("Size")) {
                     stateProp = tx.txInputOutputSize(lName.contains("Input") ? tx.TX_INPUT:tx.TX_OUTPUT);
                 } else {
                     String[] listIO = lName.split(" ");
                     stateProp = tx.listStatesIO(listIO[1],listIO[0].contains("Input") ? tx.TX_INPUT:tx.TX_OUTPUT);
                 }
                 BinaryExpr.Operator operator = getOperator(binOperator);
-                ContractCondition contractCondition = rightType.contains("integer") ? new ContractCondition(desc,stateProp,operator, new IntegerLiteralExpr(right)):new ContractCondition(desc,stateProp,operator, new StringLiteralExpr(right));
+                ContractCondition contractCondition;
+
+                if(ldatatype.contains("LocalDate")) contractCondition = new ContractCondition(desc,stateProp,operator, new MethodCallExpr("parse").setScope(new NameExpr("LocalDate")).addArgument(new StringLiteralExpr(right)));
+                else if(rightType.contains("integer"))  contractCondition = new ContractCondition(desc,stateProp,operator, new IntegerLiteralExpr(right));
+                else contractCondition = new ContractCondition(desc,stateProp,operator, new StringLiteralExpr(right));
+
                 for (int i = 0; i < commandsWithConstraints.size(); i++) {
                     if(commandsWithConstraints.get(i).commandName.equals(commandName)) {
                         commandsWithConstraints.get(i).constraints.add(contractCondition);
@@ -478,8 +477,10 @@ public class QueryDB {
                 case "greaterEquals":
                     return BinaryExpr.Operator.GREATER_EQUALS;
                 case "greaterThan":
+                case "isAfter":
                     return BinaryExpr.Operator.GREATER;
                 case "lessThan":
+                case "isBefore":
                     return BinaryExpr.Operator.LESS;
                 case "lessEquals":
                     return BinaryExpr.Operator.LESS_EQUALS;

@@ -7,21 +7,24 @@ import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.VoidType;
 
 import java.io.*;
+import java.util.Map;
 import java.util.Scanner;
 
 public class BaseFlowCompilation {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(Map<String, String> args) throws IOException {
         //-------------FETCHING----------------------//
         //Creating an array of commands from tripleStore
-        String packageName = "com.template.IOUFlow";
+        String packageName = args.get("flowPackage");
         String appName = QueryDB.getAppName();
         String stateName = QueryDB.getStateName().stateName;
+
 
         //-------------GENERATING----------------------//
 
         // Creating new Compilation Unit
         CompilationUnit compilationUnit = new CompilationUnit();
+        compilationUnit.addImport(args.get("statePackage")+"."+stateName);
         generateStateImports(compilationUnit);
         compilationUnit.setPackageDeclaration(packageName);
 
@@ -39,7 +42,7 @@ public class BaseFlowCompilation {
 
         //Output Generated File
         System.out.println(compilationUnit.toString());
-        createNewFlowClassFile(compilationUnit.toString());
+        createNewFlowClassFile(compilationUnit.toString(),appName);
     }
 
     public static void generateGetFirstNotaryMethod(ClassOrInterfaceDeclaration cd) {
@@ -139,8 +142,8 @@ public class BaseFlowCompilation {
         }
     }
 
-    public static void createNewFlowClassFile(String newFile) throws IOException {
-        BufferedWriter writer = new BufferedWriter(new FileWriter("./GeneratedFiles/BaseFlow.java"));
+    public static void createNewFlowClassFile(String newFile,String appName) throws IOException {
+        BufferedWriter writer = new BufferedWriter(new FileWriter(String.format("./GeneratedFiles/%s.java",appName + "BaseFlow")));
         writer.write(newFile);
         writer.close();
     }
