@@ -1,3 +1,5 @@
+package compilers;
+
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.body.*;
@@ -5,6 +7,8 @@ import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.*;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.VoidType;
+import queryDB.QueryDB;
+import transactionUtility.TransactionProperties;
 
 import java.io.*;
 import java.util.Map;

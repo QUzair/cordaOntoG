@@ -1,3 +1,5 @@
+package models;
+
 public class RetrieveState {
     public String propertyName;
     public String stateName;

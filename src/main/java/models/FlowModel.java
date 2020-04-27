@@ -1,14 +1,16 @@
+package models;
+
 import java.util.*;
 
 public class FlowModel {
-    String flowName;
-    Map<String, String> properties;
-    StringBuilder transaction;
-    List<NewState> newStates;
-    List<RetrieveState> retrieveStates;
-    String amountVar;
-    String payee;
-    String otherParty;
+    public String flowName;
+    public Map<String, String> properties;
+    public StringBuilder transaction;
+    public List<NewState> newStates;
+    public List<RetrieveState> retrieveStates;
+    public String amountVar;
+    public String payee;
+    public String otherParty;
 
     public FlowModel(String flowName) {
         this.flowName = flowName;

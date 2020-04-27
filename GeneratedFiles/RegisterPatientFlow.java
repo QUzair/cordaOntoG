@@ -21,8 +21,9 @@ import java.time.LocalDate;
 import net.corda.finance.workflows.asset.CashUtils;
 import net.corda.finance.contracts.asset.PartyAndAmount;
 import net.corda.core.contracts.StateAndRef;
+import net.corda.finance.workflows.GetBalances.getCashBalance;
 
-public class Register {
+public class RegisterPatientFlow {
 
     @InitiatingFlow
     @StartableByRPC

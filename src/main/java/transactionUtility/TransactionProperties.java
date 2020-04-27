@@ -1,3 +1,5 @@
+package transactionUtility;
+
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.body.VariableDeclarator;
@@ -11,12 +13,12 @@ public class TransactionProperties {
     public static String TX_INPUT = "input";
     public static String TX_OUTPUT = "output";
 
-    static String camelCase(String first, String second) {
+    public static String camelCase(String first, String second) {
         first = first.toLowerCase();
         return  first + second.substring(0, 1).toUpperCase() + second.substring(1);
     }
 
-    static String camelCase(String first, String second, String third) {
+    public static String camelCase(String first, String second, String third) {
         second = second.toLowerCase();
         first = first.toLowerCase();
         third = third.toLowerCase();
@@ -24,7 +26,7 @@ public class TransactionProperties {
     }
 
     // IOUState obligation = (IOUState) tx.getOutputStates().get(0);
-    static ExpressionStmt singleStateType(String stateName, String stateType) {
+    public static ExpressionStmt singleStateType(String stateName, String stateType) {
         return new ExpressionStmt().setExpression(new VariableDeclarationExpr().addVariable(
                 new VariableDeclarator()
                         .setName(camelCase(stateName,stateType))

@@ -1,6 +1,6 @@
 package com.template.states;
 
-import com.template.contract.RentalContract;
+import com.template.contracts.RentalContract;
 import net.corda.core.contracts.Amount;
 import net.corda.core.contracts.BelongsToContract;
 import net.corda.core.contracts.LinearState;

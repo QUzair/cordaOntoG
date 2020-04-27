@@ -14,3 +14,7 @@ java.time.Duration
 java.util.Currency
 java.util.List
 java.time.LocalDate
+net.corda.finance.workflows.asset.CashUtils
+net.corda.finance.contracts.asset.PartyAndAmount
+net.corda.core.contracts.StateAndRef
+net.corda.finance.workflows.GetBalances.getCashBalance

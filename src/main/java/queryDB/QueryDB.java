@@ -1,9 +1,12 @@
+package queryDB;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.ExpressionStmt;
+import models.*;
+import transactionUtility.TransactionProperties;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -16,7 +19,7 @@ import static com.google.common.net.HttpHeaders.USER_AGENT;
 
 public class QueryDB {
 
-    public static String dbUrl = "http://localhost:5820/carRental/query";
+    public static String dbUrl = "http://localhost:5820/patient/query";
 
     public static String stateNameQuery = "query=PREFIX :<http://cordaO.org/> SELECT ?stateName ?contractName WHERE { \n" +
             "               ?stateprop a :State ; \n" +
@@ -66,7 +69,7 @@ public class QueryDB {
             "    ?leftProp :propertyName ?lName .\n" +
             "    ?leftProp :datatype ?ldatatype .\n" +
             "    OPTIONAL {    \n" +
-            "    ?leftProp ^:hasProperty ?lstate .\n" +
+            " ?lstate :properties/rdf:rest*/rdf:first ?leftProp .\n"+
             "    ?lstate :stateName ?lstateClass .} \n" +
             "    BIND (datatype(?right) AS ?rightType)\n" +
             "    FILTER (!regex(str(?right), \"http\"))" +
@@ -85,10 +88,10 @@ public class QueryDB {
             "    ?right ?rightType ?rightProp .\n" +
             "    ?leftProp :propertyName ?lName .\n" +
             "    ?rightProp :propertyName ?rName .\n" +
-            "OPTIONAL {    ?rightProp ^:hasProperty ?rstate .\n" +
-            "    ?leftProp ^:hasProperty ?lstate .\n" +
+            "OPTIONAL {    ?rstate :properties/rdf:rest*/rdf:first ?rightProp .\n" +
+            "    ?lstate :properties/rdf:rest*/rdf:first ?leftProp .\n" +
             "OPTIONAL {    ?leftProp :payee ?payeeProp .\n" +
-            "    ?payeeProp ^:hasProperty ?state .\n" +
+            "    ?state :properties/rdf:rest*/rdf:first ?payeeProp .\n" +
             "    ?state :stateName ?payeeState ." +
             "    ?payeeProp :propertyName ?payee .}" +
             "    ?rstate :stateName ?rstateClass . \n" +

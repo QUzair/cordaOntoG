@@ -1,10 +1,17 @@
+package compilers;
+
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.*;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
-
+import models.FlowModel;
+import models.NewState;
+import models.RetrieveState;
+import models.StateAndContract;
+import queryDB.QueryDB;
+import transactionUtility.TransactionProperties;
 
 import java.io.*;
 import java.util.*;
@@ -19,7 +26,6 @@ public class FlowCompilation {
         for(FlowModel flow: flowProperties) {
             createNewFlowClass(flow,args);
         }
-
     }
 
     static void createNewFlowClass(FlowModel flow,Map<String, String> args) throws IOException {

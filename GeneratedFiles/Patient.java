@@ -1,5 +1,6 @@
 package com.template.states;
 
+import com.template.contracts.PatientContract;
 import net.corda.core.contracts.Amount;
 import net.corda.core.contracts.BelongsToContract;
 import net.corda.core.contracts.LinearState;
@@ -12,6 +13,7 @@ import java.util.Currency;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.time.LocalDate;
 
 @BelongsToContract(PatientContract.class)
 public class Patient implements LinearState {
@@ -91,7 +93,7 @@ public class Patient implements LinearState {
             return false;
         }
         Patient other = (Patient) obj;
-        return linearId.equals(other.getLinearId()) && investigator.equals(other.getInvestigator()) && regulator.equals(other.getRegulator()) && visitDate.equals(other.getVisitDate()) && visit.equals(other.getVisit()) && snqscore.equals(other.getSnqscore()) && age.equals(other.getAge()) && gender.equals(other.getGender());
+        return linearId.equals(other.getLinearId()) && investigator.equals(other.getInvestigator()) && regulator.equals(other.getRegulator()) && visitDate.equals(other.getVisitDate()) && visit == other.getVisit() && snqscore == other.getSnqscore() && age == other.getAge() && gender.equals(other.getGender());
     }
 
     @Override

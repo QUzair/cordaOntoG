@@ -1,4 +1,4 @@
-package com.template.contract;
+package com.template.contracts;
 
 import com.template.states.Rental;
 import com.google.common.collect.Sets;
@@ -21,7 +21,7 @@ import java.time.LocalDate;
 
 public class RentalContract implements Contract {
 
-    public final static String ID = "com.template.contract.RentalContract";
+    public final static String ID = "com.template.contracts.RentalContract";
 
     public interface Commands extends CommandData {
 
@@ -48,10 +48,12 @@ public class RentalContract implements Contract {
     private void verifyRegister(LedgerTransaction tx, Set<PublicKey> signers) {
         requireThat(req -> {
             Rental rentalOutput = (Rental) tx.getOutputStates().get(0);
-            req.using("License Status should be valid.", rentalOutput.getLicenseStatus().equals("valid"));
+            req.using("No inputs should be consumed when renting a new rental.", tx.getInputStates().size() == 0);
             req.using("Record Status must be clean.", rentalOutput.getRecordStatus().equals("clean"));
-            req.using("Age of rentee must be greater than 25.", rentalOutput.getAge() > 25);
+            req.using("Only one rental state should be created when renting.", tx.getOutputStates().size() == 1);
             req.using("Card Company should be Visa.", rentalOutput.getCardCompany().equals("Visa"));
+            req.using("Age of rentee must be greater than 25.", rentalOutput.getAge() > 25);
+            req.using("License Status should be valid.", rentalOutput.getLicenseStatus().equals("valid"));
             return null;
         });
     }

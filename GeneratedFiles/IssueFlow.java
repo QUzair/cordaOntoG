@@ -1,5 +1,7 @@
 package com.template.flows;
 
+import com.template.states.IOUState;
+import com.template.contracts.IOUContract;
 import co.paralleluniverse.fibers.Suspendable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -15,6 +17,10 @@ import java.security.PublicKey;
 import java.time.Duration;
 import java.util.Currency;
 import java.util.List;
+import java.time.LocalDate;
+import net.corda.finance.workflows.asset.CashUtils;
+import net.corda.finance.contracts.asset.PartyAndAmount;
+import net.corda.core.contracts.StateAndRef;
 
 public class IssueFlow {
 
@@ -75,7 +81,8 @@ public class IssueFlow {
             final FlowSession otherFlow = initiateFlow(borrower);
             final PublicKey ourSigningKey = getOurIdentity().getOwningKey();
             progressTracker.setCurrentStep(BUILDING);
-            final TransactionBuilder utx = new TransactionBuilder(getFirstNotary()).addCommand(new IOUContract.Commands.Issue(), requiredSigners).setTimeWindow(getServiceHub().getClock().instant(), Duration.ofMinutes(5)).addOutputState(newState, IOUContract.ID);
+            final TransactionBuilder utx = new TransactionBuilder(getFirstNotary())
+                    .addCommand(new IOUContract.Commands.Issue(), requiredSigners).setTimeWindow(getServiceHub().getClock().instant(), Duration.ofMinutes(5)).addOutputState(newState, IOUContract.ID);
             progressTracker.setCurrentStep(SIGNING);
             utx.verify(getServiceHub());
             final List<PublicKey> signingKeys = new ImmutableList.Builder<PublicKey>().add(ourSigningKey).build();

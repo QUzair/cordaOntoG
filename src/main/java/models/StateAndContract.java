@@ -1,3 +1,5 @@
+package models;
+
 public class StateAndContract {
     public String stateName;
     public String  contractName;

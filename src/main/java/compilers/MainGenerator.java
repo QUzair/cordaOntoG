@@ -1,3 +1,5 @@
+package compilers;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -6,7 +8,7 @@ public class MainGenerator {
 
         Map<String, String> map = new HashMap<>();
         map.put("statePackage", "com.template.states");
-        map.put("contractPackage", "com.template.contract");
+        map.put("contractPackage", "com.template.contracts");
         map.put("flowPackage", "com.template.flows");
 
         StateCompilation.main(map);

@@ -1,4 +1,7 @@
+package models;
+
 import com.github.javaparser.ast.stmt.ExpressionStmt;
+import models.ContractCondition;
 
 import java.util.ArrayList;
 import java.util.List;

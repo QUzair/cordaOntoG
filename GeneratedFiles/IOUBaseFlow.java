@@ -1,6 +1,6 @@
 package com.template.flows;
 
-import com.template.states.Patient;
+import com.template.states.IOUState;
 import com.google.common.collect.ImmutableList;
 import net.corda.core.contracts.StateAndRef;
 import net.corda.core.contracts.UniqueIdentifier;
@@ -16,7 +16,7 @@ import net.corda.core.utilities.ProgressTracker;
 import java.util.List;
 import java.time.LocalDate;
 
-abstract class ClinicalTrialPatientsBaseFlow extends FlowLogic<SignedTransaction> {
+abstract class IOUBaseFlow extends FlowLogic<SignedTransaction> {
 
     Party getFirstNotary() throws FlowException {
         List<Party> notaries = getServiceHub().getNetworkMapCache().getNotaryIdentities();
@@ -26,13 +26,13 @@ abstract class ClinicalTrialPatientsBaseFlow extends FlowLogic<SignedTransaction
         return notaries.get(0);
     }
 
-    StateAndRef<Patient> getPatientByLinearId(UniqueIdentifier linearId) throws FlowException {
+    StateAndRef<IOUState> getIOUStateByLinearId(UniqueIdentifier linearId) throws FlowException {
         QueryCriteria queryCriteria = new QueryCriteria.LinearStateQueryCriteria(null, ImmutableList.of(linearId), Vault.StateStatus.UNCONSUMED, null);
-        List<StateAndRef<Patient>> patient = getServiceHub().getVaultService().queryBy(Patient.class, queryCriteria).getStates();
-        if (patient.size() != 1) {
-            throw new FlowException(String.format("Patient with id %s not found.", linearId));
+        List<StateAndRef<IOUState>> ioustate = getServiceHub().getVaultService().queryBy(IOUState.class, queryCriteria).getStates();
+        if (ioustate.size() != 1) {
+            throw new FlowException(String.format("IOUState with id %s not found.", linearId));
         }
-        return patient.get(0);
+        return ioustate.get(0);
     }
 
     static class SignTxFlowNoChecking extends SignTransactionFlow {

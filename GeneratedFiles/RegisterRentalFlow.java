@@ -1,7 +1,7 @@
 package com.template.flows;
 
-import com.template.states.Patient;
-import com.template.contracts.PatientContract;
+import com.template.states.Rental;
+import com.template.contracts.RentalContract;
 import co.paralleluniverse.fibers.Suspendable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -21,39 +21,43 @@ import java.time.LocalDate;
 import net.corda.finance.workflows.asset.CashUtils;
 import net.corda.finance.contracts.asset.PartyAndAmount;
 import net.corda.core.contracts.StateAndRef;
+import net.corda.finance.workflows.GetBalances.getCashBalance;
 
-public class Register {
+public class RegisterRentalFlow {
 
     @InitiatingFlow
     @StartableByRPC
-    public static class Initiator extends ClinicalTrialPatientsBaseFlow {
+    public static class Initiator extends CarRentalBaseFlow {
 
-        public Initiator(int age, Party regulator, String externalId, String gender, LocalDate visitDate, int snq, int visit, Party investigator) {
+        public Initiator(int age, String externalId, String recordStatus, Party rentee, String name, String cardCompany, Party rentalCompany, String licenseStatus, int cardNum) {
             this.age = age;
-            this.regulator = regulator;
             this.externalId = externalId;
-            this.gender = gender;
-            this.visitDate = visitDate;
-            this.snq = snq;
-            this.visit = visit;
-            this.investigator = investigator;
+            this.recordStatus = recordStatus;
+            this.rentee = rentee;
+            this.name = name;
+            this.cardCompany = cardCompany;
+            this.rentalCompany = rentalCompany;
+            this.licenseStatus = licenseStatus;
+            this.cardNum = cardNum;
         }
 
         private final int age;
 
-        private final Party regulator;
-
         private final String externalId;
 
-        private final String gender;
+        private final String recordStatus;
 
-        private final LocalDate visitDate;
+        private final Party rentee;
 
-        private final int snq;
+        private final String name;
 
-        private final int visit;
+        private final String cardCompany;
 
-        private final Party investigator;
+        private final Party rentalCompany;
+
+        private final String licenseStatus;
+
+        private final int cardNum;
 
         private final Step INITIALISING = new Step("Performing Initial Steps.");
 
@@ -88,12 +92,12 @@ public class Register {
         @Override
         public SignedTransaction call() throws FlowException {
             progressTracker.setCurrentStep(INITIALISING);
-            final Patient newState = new Patient(gender, age, snq, visit, visitDate, regulator, investigator, new UniqueIdentifier(externalId));
+            final Rental newState = new Rental(name, age, cardNum, cardCompany, licenseStatus, recordStatus, rentalCompany, rentee, new UniqueIdentifier(externalId));
             final List<PublicKey> requiredSigners = newState.getParticipantKeys();
-            final FlowSession otherFlow = initiateFlow(regulator);
+            final FlowSession otherFlow = initiateFlow(rentalCompany);
             final PublicKey ourSigningKey = getOurIdentity().getOwningKey();
             progressTracker.setCurrentStep(BUILDING);
-            final TransactionBuilder utx = new TransactionBuilder(getFirstNotary()).addCommand(new PatientContract.Commands.Register(), requiredSigners).setTimeWindow(getServiceHub().getClock().instant(), Duration.ofMinutes(5)).addOutputState(newState, PatientContract.ID);
+            final TransactionBuilder utx = new TransactionBuilder(getFirstNotary()).addCommand(new RentalContract.Commands.Register(), requiredSigners).setTimeWindow(getServiceHub().getClock().instant(), Duration.ofMinutes(5)).addOutputState(newState, RentalContract.ID);
             progressTracker.setCurrentStep(SIGNING);
             utx.verify(getServiceHub());
             final List<PublicKey> signingKeys = new ImmutableList.Builder<PublicKey>().add(ourSigningKey).build();
@@ -118,7 +122,7 @@ public class Register {
         @Suspendable
         @Override
         public SignedTransaction call() throws FlowException {
-            final SignedTransaction stx = subFlow(new ClinicalTrialPatientsBaseFlow.SignTxFlowNoChecking(otherFlow, SignTransactionFlow.Companion.tracker()));
+            final SignedTransaction stx = subFlow(new CarRentalBaseFlow.SignTxFlowNoChecking(otherFlow, SignTransactionFlow.Companion.tracker()));
             return subFlow(new ReceiveFinalityFlow(otherFlow, stx.getId()));
         }
     }
