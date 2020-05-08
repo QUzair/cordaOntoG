@@ -1,0 +1,197 @@
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix : <http://cordaO.org/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema/> . 
+
+# Defining Application Parameters
+:cdp1 a :CordDapp ;
+    :hasName "IOU" ;
+    :hasDescription "A simple application to Issue Obligations due between a lender and a borrower" .
+
+# Defining State
+:sp1 a :StateProperty ;
+            :propertyName "value"^^xsd:string ;
+            :datatype "Amount<Currency>"^^xsd:string .
+
+:sp2 a :StateProperty ;
+            :propertyName "borrower"^^xsd:string ;
+            :datatype "Party"^^xsd:string ;
+            :txIdentity "payer"^^xsd:string .
+
+:sp3 a :StateProperty ;
+            :propertyName "lender"^^xsd:string ;
+            :datatype "Party"^^xsd:string ;
+            :txIdentity "payee"^^xsd:string .
+
+:s1  a :State ;
+        :stateName "IOUState"^^xsd:string ;
+        :properties ( :sp1  :sp2  :sp3) ;
+        :hasProperty :sp1 ;
+        :hasProperty :sp2 ;
+        :hasProperty :sp3 ;
+        :belongsTo :contract1 .
+
+:txC a :StateProperty ;
+            :propertyName "AcceptableCash"^^xsd:string ;
+            :payee :sp3 ;
+            :datatype "int"^^xsd:string .
+
+:txoutCash a :Cash ;
+            :stateName "Cash"^^xsd:string;
+            :properties ( :txC );
+            :hasProperty :txC .
+
+# Defining Commands
+:comIss a :Command ;
+    :commandName "Issue"^^xsd:string ;
+    :hasConstraint :constraint1 ;
+    :hasConstraint :constraint2 ;
+    :hasConstraint :constraint3 ;
+    :hasConstraint :constraint4 ;
+    :hasConstraint :constraint5 .
+
+:commSettle a :Command ;
+    :commandName "Settle"^^xsd:string ;
+    :hasConstraint :constraintS1 ;
+    :hasConstraint :constraintS2 ;
+    :hasConstraint :constraintS3 .
+
+#Defining Contract 
+:contract1 a :Contract ;
+    :contractName "IOUContract"^^xsd:string ;
+    :hasCommand :comIss ;
+    :hasCommand :commSettle .
+
+# Defining Flow Properties for IssueFlow
+:fp1 a :FlowProperty ;
+            :flowPropertyName "amount"^^xsd:string ;
+            :datatype "Amount<Currency>"^^xsd:string .
+
+:fp2 a :FlowProperty ;
+            :flowPropertyName "borrower"^^xsd:string ;
+            :datatype "Party"^^xsd:string .
+
+:fp3 a :FlowProperty ;
+            :flowPropertyName "lender"^^xsd:string ;
+            :datatype "Party"^^xsd:string .
+ 
+:fp6 a :FlowProperty ;
+            :flowPropertyName "externalId"^^xsd:string ;
+            :datatype "String"^^xsd:string .
+
+# Defining Flow Properties for SettleFlow
+:fp4 a :FlowProperty ;
+            :flowPropertyName "amount"^^xsd:string ;
+            :datatype "Amount<Currency>"^^xsd:string .
+
+:fp5 a :FlowProperty ;
+            :flowPropertyName "linearId"^^xsd:string ;
+            :datatype "UniqueIdentifier"^^xsd:string .
+
+# New Issued Obligation State
+:sf2  a :NewState ;
+        :newProperties (:fp1 :fp2 :fp3 :fp6) ;
+        :stateClass :s1 .
+
+# Retrieve State to Settle
+:sf3  a :RetrievedState ;
+        :stateClass :s1 ;
+        :retrieveWith :fp5 .
+
+:sf4    a :Cash ;
+        :amount :fp4 ;
+        :payee :sp3 .
+
+# Defining Flows
+:f1 a :Flow ;
+    :otherParty :fp2 ;
+    :flowName "IssueFlow" ;
+    :properties (:fp1 :fp2 :fp3 :fp6) ;
+    :hasTransaction :t1 .
+
+:f2 a :Flow ;
+    :otherParty :fp3 ;
+    :flowName "SettleFlow" ;
+    :properties (:fp4 :fp3 :fp5 ) ;
+    :hasTransaction :t2 .
+
+# Build Transaction for Issue Flow
+:t1 a :Transaction ;
+    :hasCommand :comIss ;
+    :hasOutputState :sf2 .
+
+# Build Transaction for Settle Flow
+:t2 a :Transaction ;
+    :hasCommand :commSettle ;
+    :hasInputState :sf3 ;
+    :hasOutputState :sf4 .
+
+# Transaction Parameters
+:txInputSize :propertyName "Input Size"^^xsd:string ;
+            :datatype "int"^^xsd:string .
+:txOutputSize :propertyName "Output Size"^^xsd:string ;
+            :datatype "int"^^xsd:string .
+:txInputeState :propertyName "Input IOUState"^^xsd:string ;
+            :datatype "int"^^xsd:string .
+:txOutputState :propertyName "Output IOUState"^^xsd:string ;
+            :datatype "int"^^xsd:string .
+
+:txInputParam a :txPropertyType . 
+:txOutputParam a :txPropertyType . 
+
+
+:txIStates :txOutputParam :txInputeState .
+:txInpStates :txInputParam :txInpState.
+:txInpSize :txInputParam :txInputSize .
+:txinpsp1 :txInputParam :sp1 .
+:txinpsp2 :txInputParam :sp2 .
+:txinpsp3 :txInputParam :sp3 .
+
+:txOStates :txOutputParam :txOutputState .
+:txOCash :txOutputParam :txC .
+:txOutSize :txOutputParam :txOutputSize .
+:txoutsp1 :txOutputParam :sp1 .
+:txoutsp2 :txOutputParam :sp2 .
+:txoutsp3 :txOutputParam :sp3 .
+
+## Define Issue Contract Constraints
+:constraint1 a :Constraint ;
+    :hasDescription "The lender and borrower cannot be the same identity."^^xsd:string .
+
+:constraint2 a :Constraint ;
+    :hasDescription "A newly issued obligation must have a positive amount."^^xsd:string .
+
+:constraint3 a :Constraint ;
+    :hasDescription "A newly issued obligation must be less than $150."^^xsd:string .
+
+:constraint4 a :Constraint ;
+    :hasDescription "No inputs should be consumed when issuing an obligation."^^xsd:string .
+
+:constraint5 a :Constraint ;
+    :hasDescription "Only one obligation state should be created when issuing an obligation."^^xsd:string .
+
+
+# Conditional Constraints
+<< :txoutsp3 :notEquals :txoutsp2 >> :belongsTo :constraint1 .
+<< :txoutsp1 :greaterThan 0 >> :belongsTo :constraint2 .
+<< :txoutsp1 :lessThan 15000 >> :belongsTo :constraint3 . 
+<< :txInpSize :equals 0 >> :belongsTo :constraint4 . 
+<< :txOutSize :equals 1 >> :belongsTo :constraint5 . 
+
+
+## Define Settle Contract Constraints
+:constraintS1 a :Constraint ;
+    :hasDescription "There must be one input obligation."^^xsd:string .
+
+:constraintS2 a :Constraint ;
+    :hasDescription "The amount settled should be equal to amount in initial contract."^^xsd:string .
+
+:constraintS3 a :Constraint ;
+    :hasDescription "There must be no output obligation as it has been fully settled."^^xsd:string .
+
+
+<< :txIStates :equals 1 >> :belongsTo :constraintS1 .
+<< :txOCash :equals :txinpsp1 >> :belongsTo :constraintS2 .
+<< :txOStates :equals 0 >> :belongsTo :constraintS3 .

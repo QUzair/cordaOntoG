@@ -1,0 +1,178 @@
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix : <http://cordaO.org/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema/> . 
+
+# Defining Application Parameters
+:cdp1 a :CordDapp ;
+    :hasName "CarRental" ;
+    :hasDescription "A simple application to Register Car Rentals" .
+
+
+# Defining State
+:sp1 a :StateProperty ;
+            :propertyName "name"^^xsd:string ;
+            :datatype "String"^^xsd:string .
+
+:sp2 a :StateProperty ;
+            :propertyName "age"^^xsd:string ;
+            :datatype "int"^^xsd:string .
+
+:sp3 a :StateProperty ;
+            :propertyName "cardNum"^^xsd:string ;
+            :datatype "int"^^xsd:string .
+
+:sp4 a :StateProperty ;
+            :propertyName "cardCompany"^^xsd:string ;
+            :datatype "String"^^xsd:string .
+
+:sp5 a :StateProperty ;
+            :propertyName "licenseStatus"^^xsd:string ;
+            :datatype "String"^^xsd:string .
+
+:sp6 a :StateProperty ;
+            :propertyName "recordStatus"^^xsd:string ;
+            :datatype "String"^^xsd:string .
+
+:sp7 a :StateProperty ;
+            :propertyName "rentalCompany"^^xsd:string ;
+            :datatype "Party"^^xsd:string .
+
+:sp8 a :StateProperty ;
+            :propertyName "rentee"^^xsd:string ;
+            :datatype "Party"^^xsd:string .
+
+
+:s1  a :State ;
+        :stateName "Rental"^^xsd:string;
+        :properties ( :sp1  :sp2  :sp3 :sp4 :sp5 :sp6 :sp7 :sp8) ;
+        :belongsTo :contract1 .
+
+# Defining Commands
+:commReg a :Command ;
+    :commandName "Register"^^xsd:string ;
+    :hasConstraint :constraint1 ;
+    :hasConstraint :constraint2 ;
+    :hasConstraint :constraint3 ;
+    :hasConstraint :constraint4 ;
+    :hasConstraint :constraint5 ;
+    :hasConstraint :constraint6 .
+
+#Defining Contract 
+:contract1 a :Contract ;
+    :contractName "RentalContract"^^xsd:string ;
+    :hasCommand :commReg .
+
+# Defining Flow Properties
+:fp1 a :FlowProperty ;
+            :flowPropertyName "name"^^xsd:string ;
+            :datatype "String"^^xsd:string .
+
+:fp2 a :FlowProperty ;
+            :flowPropertyName "age"^^xsd:string ;
+            :datatype "int"^^xsd:string .
+
+:fp3 a :FlowProperty ;
+            :flowPropertyName "cardNum"^^xsd:string ;
+            :datatype "int"^^xsd:string .
+
+:fp4 a :FlowProperty ;
+            :flowPropertyName "cardCompany"^^xsd:string ;
+            :datatype "String"^^xsd:string .
+
+:fp5 a :FlowProperty ;
+            :flowPropertyName "licenseStatus"^^xsd:string ;
+            :datatype "String"^^xsd:string .
+
+:fp6 a :FlowProperty ;
+            :flowPropertyName "recordStatus"^^xsd:string ;
+            :datatype "String"^^xsd:string .
+
+:fp7 a :FlowProperty ;
+            :flowPropertyName "rentalCompany"^^xsd:string ;
+            :datatype "Party"^^xsd:string .
+
+:fp8 a :FlowProperty ;
+            :flowPropertyName "rentee"^^xsd:string ;
+            :datatype "Party"^^xsd:string .
+
+:fp9 a :FlowProperty ;
+            :flowPropertyName "externalId"^^xsd:string ;
+            :datatype "String"^^xsd:string .
+
+# New Patient State
+:sf2  a :NewState ;
+        :newProperties (:fp1 :fp2 :fp3 :fp4 :fp5 :fp6 :fp7 :fp8 :fp9) ;
+        :stateClass :s1 .
+
+# Build Transaction for Register Flow
+:t1 a :Transaction ;
+    :hasCommand :commReg ;
+    :hasOutputState :sf2 .
+
+# New Register Patient Flow
+:flowReg  a :Flow ;
+        :otherParty :fp7 ;
+        :flowName "RegisterRentalFlow"^^xsd:string;
+        :properties (:fp1 :fp2 :fp3 :fp4 :fp5 :fp6 :fp7 :fp8 :fp9) ;
+        :hasTransaction :t1 .
+        
+
+# Transaction Parameters
+:txInputSize :propertyName "Input Size"^^xsd:string ;
+            :datatype "int"^^xsd:string .
+:txOutputSize :propertyName "Output Size"^^xsd:string ;
+            :datatype "int"^^xsd:string .
+:txInputeState :propertyName "Input Patient"^^xsd:string ;
+            :datatype "int"^^xsd:string .
+:txOutputState :propertyName "Output Patient"^^xsd:string ;
+            :datatype "int"^^xsd:string .
+
+:txInputParam a :txPropertyType . 
+:txOutputParam a :txPropertyType . 
+
+:txIStates :txOutputParam :txInputeState .
+:txInpStates :txInputParam :txInpState.
+:txInpSize :txInputParam :txInputSize .
+
+:txOStates :txOutputParam :txOutputState .
+:txOutSize :txOutputParam :txOutputSize .
+:txoutsp1 :txOutputParam :sp1 .
+:txoutsp2 :txOutputParam :sp2 .
+:txoutsp3 :txOutputParam :sp3 .
+:txoutsp4 :txOutputParam :sp4 .
+:txoutsp5 :txOutputParam :sp5 .
+:txoutsp6 :txOutputParam :sp6 .
+:txoutsp7 :txOutputParam :sp7 .
+:txoutsp8 :txOutputParam :sp8 .
+
+
+## Define Contract Constraints
+:constraint1 a :Constraint ;
+    :hasDescription "Age of rentee must be greater than 25."^^xsd:string .
+
+:constraint2 a :Constraint ;
+    :hasDescription "Card Company should be Visa."^^xsd:string .
+
+:constraint3 a :Constraint ;
+    :hasDescription "License Status should be valid."^^xsd:string .
+
+:constraint4 a :Constraint ;
+    :hasDescription "Record Status must be clean."^^xsd:string .
+
+:constraint5 a :Constraint ;
+    :hasDescription "No inputs should be consumed when renting a new rental."^^xsd:string .
+
+:constraint6 a :Constraint ;
+    :hasDescription "Only one rental state should be created when renting."^^xsd:string .
+
+
+# Conditional Constraints
+<< :txoutsp2 :greaterThan 25 >> :belongsTo :constraint1 .
+<< :txoutsp4 :equals "Visa" >> :belongsTo :constraint2 .
+<< :txoutsp5 :equals "valid" >> :belongsTo :constraint3 . 
+<< :txoutsp6 :equals "clean" >> :belongsTo :constraint4 . 
+<< :txInpSize :equals 0 >> :belongsTo :constraint5 . 
+<< :txOutSize :equals 1 >> :belongsTo :constraint6 . 

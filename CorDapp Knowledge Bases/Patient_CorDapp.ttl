@@ -1,0 +1,175 @@
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix : <http://cordaO.org/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema/> . 
+
+# Defining Application Parameters
+:cdp1 a :CordDapp ;
+    :hasName "ClinicalTrialPatients" ;
+    :hasDescription "A simple application to Register Patients Eligible for Clinical Trial" .
+
+
+# Defining State
+:sp1 a :StateProperty ;
+            :propertyName "gender"^^xsd:string ;
+            :datatype "String"^^xsd:string .
+
+:sp2 a :StateProperty ;
+            :propertyName "age"^^xsd:string ;
+            :datatype "int"^^xsd:string .
+
+:sp3 a :StateProperty ;
+            :propertyName "snqscore"^^xsd:string ;
+            :datatype "int"^^xsd:string .
+
+:sp4 a :StateProperty ;
+            :propertyName "visit"^^xsd:string ;
+            :datatype "int"^^xsd:string .
+
+:sp5 a :StateProperty ;
+            :propertyName "visitDate"^^xsd:string ;
+            :datatype "LocalDate"^^xsd:string .
+
+:sp6 a :StateProperty ;
+            :propertyName "regulator"^^xsd:string ;
+            :datatype "Party"^^xsd:string .
+
+:sp7 a :StateProperty ;
+            :propertyName "investigator"^^xsd:string ;
+            :datatype "Party"^^xsd:string .
+
+:s1  a :State ;
+        :stateName "Patient"^^xsd:string;
+        :properties ( :sp1  :sp2  :sp3 :sp4 :sp5 :sp6 :sp7) ;
+        :belongsTo :contract1 .
+
+# Defining Commands
+:commReg a :Command ;
+    :commandName "Register"^^xsd:string ;
+    :hasConstraint :constraint1 ;
+    :hasConstraint :constraint2 ;
+    :hasConstraint :constraint3 ;
+    :hasConstraint :constraint4 ;
+    :hasConstraint :constraint5 ;
+    :hasConstraint :constraint6 ;
+    :hasConstraint :constraint7 ;
+    :hasConstraint :constraint8 .
+
+#Defining Contract 
+:contract1 a :Contract ;
+    :contractName "PatientContract"^^xsd:string ;
+    :hasCommand :commReg .
+
+# Defining Flow Properties
+:fp1 a :FlowProperty ;
+            :flowPropertyName "gender"^^xsd:string ;
+            :datatype "String"^^xsd:string .
+
+:fp2 a :FlowProperty ;
+            :flowPropertyName "age"^^xsd:string ;
+            :datatype "int"^^xsd:string .
+        
+:fp3 a :FlowProperty ;
+            :flowPropertyName "snq"^^xsd:string ;
+            :datatype "int"^^xsd:string .
+
+:fp4 a :FlowProperty ;
+            :flowPropertyName "visit"^^xsd:string ;
+            :datatype "int"^^xsd:string .
+
+:fp5 a :FlowProperty ;
+            :flowPropertyName "visitDate"^^xsd:string ;
+            :datatype "LocalDate"^^xsd:string .
+
+:fp6 a :FlowProperty ;
+            :flowPropertyName "regulator"^^xsd:string ;
+            :datatype "Party"^^xsd:string .
+
+:fp7 a :FlowProperty ;
+            :flowPropertyName "investigator"^^xsd:string ;
+            :datatype "Party"^^xsd:string .
+
+:fp8 a :FlowProperty ;
+            :flowPropertyName "externalId"^^xsd:string ;
+            :datatype "String"^^xsd:string .
+
+# New Patient State
+:sf2  a :NewState ;
+        :newProperties (:fp1 :fp2 :fp3 :fp4 :fp5 :fp6 :fp7 :fp8) ;
+        :stateClass :s1 .
+
+# Build Transaction for Register Flow
+:t1 a :Transaction ;
+    :hasCommand :commReg ;
+    :hasOutputState :sf2 .
+
+# New Register Patient Flow
+:flowReg  a :Flow ;
+        :otherParty :fp6 ;
+        :flowName "RegisterPatientFlow"^^xsd:string;
+        :properties (:fp1 :fp2 :fp3 :fp4 :fp5 :fp6 :fp7 :fp8) ;
+        :hasTransaction :t1 .
+        
+
+# Transaction Parameters
+:txInputSize :propertyName "Input Size"^^xsd:string ;
+            :datatype "int"^^xsd:string .
+:txOutputSize :propertyName "Output Size"^^xsd:string ;
+            :datatype "int"^^xsd:string .
+:txInputeState :propertyName "Input Patient"^^xsd:string ;
+            :datatype "int"^^xsd:string .
+:txOutputState :propertyName "Output Patient"^^xsd:string ;
+            :datatype "int"^^xsd:string .
+
+:txInputParam a :txPropertyType . 
+:txOutputParam a :txPropertyType . 
+
+:txInpSize :txInputParam :txInputSize .
+:txOutSize :txOutputParam :txOutputSize .
+
+:txOStates :txOutputParam :txOutputState .
+:txOutSize :txOutputParam :txOutputSize .
+:txoutsp1 :txOutputParam :sp1 .
+:txoutsp2 :txOutputParam :sp2 .
+:txoutsp3 :txOutputParam :sp3 .
+:txoutsp4 :txOutputParam :sp4 .
+:txoutsp5 :txOutputParam :sp5 .
+
+
+## Define Contract Constraints
+:constraint1 a :Constraint ;
+    :hasDescription "Gender Must be Female."^^xsd:string .
+
+:constraint2 a :Constraint ;
+    :hasDescription "SNQ Score must be greater than or equals to 1."^^xsd:string .
+
+:constraint3 a :Constraint ;
+    :hasDescription "Should be patients first Visit."^^xsd:string .
+
+:constraint4 a :Constraint ;
+    :hasDescription "SNQ must have been conducted before February 15th 2010."^^xsd:string .
+
+:constraint5 a :Constraint ;
+    :hasDescription "SNQ must have been conducted after February 1st 2010."^^xsd:string .
+
+:constraint6 a :Constraint ;
+    :hasDescription "Patient Age should be greater than or equal to 6."^^xsd:string .
+
+:constraint7 a :Constraint ;
+    :hasDescription "No inputs should be consumed when registering a new clinical trial patient."^^xsd:string .
+
+:constraint8 a :Constraint ;
+    :hasDescription "Only one clinical trial patient state should be created during registration."^^xsd:string .
+
+
+# Conditional Constraints
+<< :txoutsp1 :equals "Female" >> :belongsTo :constraint1 .
+<< :txoutsp3 :greaterEquals 1 >> :belongsTo :constraint2 . 
+<< :txoutsp4 :equals 1 >> :belongsTo :constraint3 .
+<< :txoutsp5 :isBefore "2010-02-15" >> :belongsTo :constraint4 . 
+<< :txoutsp5 :isAfter "2010-02-01" >> :belongsTo :constraint5 . 
+<< :txoutsp2 :greaterEquals 6 >> :belongsTo :constraint6 .
+<< :txInpSize :equals 0 >> :belongsTo :constraint7 . 
+<< :txOutSize :equals 1 >> :belongsTo :constraint8 . 
